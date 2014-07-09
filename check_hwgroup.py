@@ -241,7 +241,7 @@ def main():
     for (short, long, type, default, help) in (
         ('H', 'host',      str,   object,   'The hostname or ipaddress '
                                             'of the hwgroup device'),
-        ('C', 'community', str,   'public', 'The snmp community '
+        ('C', 'community', str,   'public', 'The SNMP community '
                                             'of the hwgroup device'),
         ('w', 'warning',   float, object,   'Warning threshold'),
         ('c', 'critical',  float, object,   'Critical threshold')

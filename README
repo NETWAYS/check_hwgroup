@@ -1,0 +1,34 @@
+check_hwgroup.py
+================
+
+Checks the hwgroup environmental devices
+
+Usage
+-----
+
+### Get help
+
+check_hwgroup.py -h|--help
+
+### Get the program version
+
+check_hwgroup.py -V|--version
+
+Options
+-------
+
+short | long        | type    | default    | description
+------+-------------+---------+------------+----------------------------------
+-v    | --verbose   | N/A     | N/A        | be verbose (specify up to 3 times
+      |             |         |            | to increase verbosity level)
+-H    | --host      | string  | (required) | the hostname or ipaddress
+      |             |         |            | of the hwgroup device
+-C    | --community | string  | public     | the snmp community
+      |             |         |            | of the hwgroup device
+-w    | --warning   | float   | (required) | warning threshold
+-c    | --critical  | float   | (required) | critical threshold
+-S    | --sensor    | integer | (none)     | the sensor to check
+-I    | --contact   | integer | (none)     | the dry contact to check
+-O    | --output    | integer | (none)     | the relay output to check
+
+Exactly one of -S, -I, -O must be given.

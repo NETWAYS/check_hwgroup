@@ -38,9 +38,14 @@ class CheckHWGroupError(Exception):
 
 class CheckHWGroupResource(nagiosplugin.Resource):
     """
-    The resource for fetching sensor values
+    The resource for fetching sensor/contact/output values
     """
-    def __init__(self, host, community, sensor):
+    def __init__(
+        self,
+        host, community,
+        sensor, contact, output,
+        **kwargs
+    ):
         """Prepare the resource
 
         :param host: target host
@@ -49,15 +54,23 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         :type community: str
         :param sensor: target sensor
         :type sensor: int
+        :param contact: target contact
+        :type contact: int
+        :param output: target output
+        :type output: int
         """
         (
             self.host,
             self.community,
-            self.sensor
+            self.sensor,
+            self.contact,
+            self.output
         ) = (
             host,
             community,
-            sensor
+            sensor,
+            contact,
+            output
         )
         self.deviceName = str(self.SNMPReq('.1.3.6.1.2.1.1.1.0'))
 
@@ -75,7 +88,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
             errorIndex,
             varBinds
         ) = cmdgen.CommandGenerator().getCmd(
-            cmdgen.CommunityData(self.community),
+            cmdgen.CommunityData(self.community, mpModel=0),
             cmdgen.UdpTransportTarget((self.host, 161)),
             cmdgen.MibVariable(MIBInit),
             lookupNames=True, lookupValues=True
@@ -88,76 +101,135 @@ class CheckHWGroupResource(nagiosplugin.Resource):
             return str(varBinds[0][1])
 
     def probe(self):
-        """Fetch sensor values
+        """Fetch values
 
         :rtype: nagiosplugin.Metric
         :raise CheckHWGroupError: various reasons, see error messages below
         """
-        for (device, sensor_tree_id) in (
-            ('Poseidon', '3.3.3.1.8'),
-            ('Damocles', '3.4.3.1.8'),
-            ('STE',      '4.1.3.1.8'),
-            ('WLD',      '4.5.4.1.5')
-        ):
-            if device in self.deviceName:
-                deviceType = device
-                sensorTreeID = '{}.{}'.format(enterprise, sensor_tree_id)
-                break
-        else:
-            raise CheckHWGroupError(
-                "Device '{}' not supported".format(self.deviceName)
-            )
-
-        for i in (1, 2):
-            try:
-                sensorID = int(self.SNMPReq('{}.{}'.format(sensorTreeID, i)))
-            except ValueError:
-                continue
-            if sensorID == self.sensor:
-                sensorID = i
-                break
-        else:
-            raise CheckHWGroupError(
-                'Sensor ID ({}) not found'.format(self.sensor)
-            )
-
-        (
-            sensName,
-            sensState,
-            sensValue
-        ) = [self.SNMPReq(
-            '{}.{}.{}'.format(enterprise, OID, sensorID)
-        ) for OID in {
-            'Poseidon': (
-                '3.3.3.1.2',
-                '3.3.3.1.4',
-                '3.3.3.1.6'
-            ),
-            'Damocles': (
-                '3.4.3.1.2',
-                '3.4.3.1.4',
-                '3.4.3.1.6'
-            ),
-            'STE': (
-                '4.1.3.1.2',
-                '4.1.3.1.3',
-                '4.1.3.1.5'
-            ),
-            'WLD': (
-                '4.5.4.1.2',
-                '4.5.4.1.3',
-                '4.5.4.1.6'
-            )
-        }[deviceType]]
-
-        if not int(sensState):
-            raise CheckHWGroupError('getting sensor values failed')
-
         yield nagiosplugin.Metric(
-            sensName,
-            float(sensValue) / 10,
+            *self._probe(),
             context='check_hwgroup'
         )
+
+    def _probe(self):
+        if self.sensor is not None:
+            for (device, sensor_tree_id) in (
+                ('Poseidon', '3.3.3.1.8'),
+                ('Damocles', '3.4.3.1.8'),
+                ('STE',      '4.1.3.1.8'),
+                ('WLD',      '4.5.4.1.5')
+            ):
+                if device in self.deviceName:
+                    deviceType = device
+                    sensorTreeID = '{}.{}'.format(enterprise, sensor_tree_id)
+                    break
+            else:
+                raise CheckHWGroupError(
+                    "Device '{}' not supported".format(self.deviceName)
+                )
+
+            for i in (1, 2):
+                try:
+                    sensorID = int(self.SNMPReq('{}.{}'.format(sensorTreeID, i)))
+                except ValueError:
+                    continue
+                if sensorID == self.sensor:
+                    sensorID = i
+                    break
+            else:
+                raise CheckHWGroupError(
+                    'Sensor ID ({}) not found'.format(self.sensor)
+                )
+
+            (
+                sensName,
+                sensState,
+                sensValue
+            ) = [self.SNMPReq(
+                '{}.{}.{}'.format(enterprise, OID, sensorID)
+            ) for OID in {
+                'Poseidon': (
+                    '3.3.3.1.2',
+                    '3.3.3.1.4',
+                    '3.3.3.1.6'
+                ),
+                'Damocles': (
+                    '3.4.3.1.2',
+                    '3.4.3.1.4',
+                    '3.4.3.1.6'
+                ),
+                'STE': (
+                    '4.1.3.1.2',
+                    '4.1.3.1.3',
+                    '4.1.3.1.5'
+                ),
+                'WLD': (
+                    '4.5.4.1.2',
+                    '4.5.4.1.3',
+                    '4.5.4.1.6'
+                )
+            }[deviceType]]
+
+            if not int(sensState):
+                raise CheckHWGroupError('getting sensor values failed')
+
+            return (
+                sensName,
+                float(sensValue) / 10
+            )
+        elif self.contact is not None:
+            (
+                inpValue,
+                inpName,
+                inpAlarmSetup,
+                inpAlarmState
+            ) = [self.SNMPReq(
+                '{}.3.4.1.1.{}.{}'.format(enterprise, OID, self.contact)
+            ) for OID in xrange(2, 6)]
+
+            return (
+                '{} [AlarmState: {}, AlarmSetup: {}]'.format(
+                    inpName,
+                    (
+                        'normal',
+                        'alarm'
+                    )[int(inpAlarmState)],
+                    (
+                        'inactive',
+                        'activeOff',
+                        'activeOn'
+                    )[int(inpAlarmSetup)]
+                ),
+                float(inpValue)
+            )
+        else:
+            (
+                outValue,
+                outName,
+                outType,
+                outMode
+            ) = [self.SNMPReq(
+                '{}.3.4.2.1.{}.{}'.format(enterprise, OID, self.output)
+            ) for OID in xrange(2, 6)]
+
+            return (
+                '{} [Type: {}, Mode: {}]'.format(
+                    outName,
+                    (
+                        'relay (off, on)',
+                        'rts (-10V,+10V)',
+                        'dtr (0V,+10V)'
+                    )[int(outType)],
+                    (
+                        'manual',
+                        'autoAlarm',
+                        'autoTriggerEq',
+                        'autoTriggerHi',
+                        'autoTriggerLo'
+                    )[int(outMode)]
+                ),
+                float(outValue)
+            )
 
 
 def main():
@@ -171,10 +243,8 @@ def main():
                                             'of the hwgroup device'),
         ('C', 'community', str,   'public', 'The snmp community '
                                             'of the hwgroup device'),
-        ('w', 'warning',   float, object,   'Warning threshold '
-                                            '(only for STE device)'),
-        ('c', 'critical',  float, object,   'Critical threshold '
-                                            '(only for STE device)')
+        ('w', 'warning',   float, object,   'Warning threshold'),
+        ('c', 'critical',  float, object,   'Critical threshold')
     ):
         argp.add_argument(
             '-{}'.format(short),
@@ -203,14 +273,13 @@ def main():
         sys.exit(3)
 
     try:
-        resource = CheckHWGroupResource(
-            *(args[k] for k in ('host', 'community', 'sensor'))
-        )
+        resource = CheckHWGroupResource(**args)
         check = nagiosplugin.Check(
             resource,
             nagiosplugin.ScalarContext(
                 'check_hwgroup',
-                *(args[k] for k in ('warning', 'critical'))
+                args['warning'],
+                args['critical']
             ),
         )
         check.name = resource.deviceName

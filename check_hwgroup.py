@@ -3,7 +3,7 @@
 # check_hwgroup.py - checks the hwgroup environmental devices
 # Copyright (C) 2014  NETWAYS GmbH <http://www.netways.de>
 #
-# Version: 0.9
+# Version: 1.0
 # Author: Alexander Klimov <alexander.klimov@netways.de>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -262,7 +262,7 @@ def main():
     argp = ArgumentParser(
         description='checks the hwgroup environmental devices'
     )
-    argp.add_argument('-V', '--version', action='version', version='0.9')
+    argp.add_argument('-V', '--version', action='version', version='1.0')
     argp.add_argument('-v', '--verbose', action='count', default=0)
     for (short, long, type, default, help) in (
         ('H', 'host',      str,   object,   'The hostname or ipaddress '

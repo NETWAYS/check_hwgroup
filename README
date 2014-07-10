@@ -38,9 +38,9 @@ Exactly one of -S, -I, -O must be given.
 Supported devices
 -----------------
 
-* Poseidon  <http://www.hw-group.com/products/poseidon/poseidon_xxxx_en.html>
-* Damocles  <http://www.hw-group.com/products/damocles/damocles_xxxx_en.html>
-* HWg-STE   <http://www.hw-group.com/products/HWg-STE/STE_ip_temperature_sensor_en.html>
+* Poseidon  http://www.hw-group.com/products/poseidon/poseidon_xxxx_en.html
+* Damocles  http://www.hw-group.com/products/damocles/damocles_xxxx_en.html
+* HWg-STE   http://www.hw-group.com/products/HWg-STE/STE_ip_temperature_sensor_en.html
 
 Examples
 --------
@@ -82,3 +82,19 @@ $ ./check_hwgroup.py -H 192.168.144.120 -S 17947 -w 30 -c 35
 ERROR: Sensor ID (17947) not found
 $ echo $?
 3
+
+Where to buy
+------------
+
+Product can be found here:
+[NETWAYS Shop](http://shop.netways.de/ueberwachung/hw-group.html)
+
+Bugs and repository
+-------------------
+
+For chorus of praise or complaints you can go here:
+
+* https://git.netways.org/plugins/check_hwgroup
+* https://www.netways.org/projects/plugins
+
+Native git access: git://git.netways.org/plugins/check_hwgroup.git

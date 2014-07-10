@@ -72,7 +72,16 @@ class CheckHWGroupResource(nagiosplugin.Resource):
             contact,
             output
         )
+
         self.deviceName = str(self.SNMPReq('.1.3.6.1.2.1.1.1.0'))
+        for device in ('Poseidon', 'Damocles', 'STE', 'WLD'):
+            if device in self.deviceName:
+                self.deviceType = device
+                break
+        else:
+            raise CheckHWGroupError(
+                "Device '{}' not supported".format(self.deviceName)
+            )
 
     def SNMPReq(self, MIBInit):
         """Send a SNMP request and return the response
@@ -113,24 +122,18 @@ class CheckHWGroupResource(nagiosplugin.Resource):
 
     def _probe(self):
         if self.sensor is not None:
-            for (device, sensor_tree_id) in (
-                ('Poseidon', '3.3.3.1.8'),
-                ('Damocles', '3.4.3.1.8'),
-                ('STE',      '4.1.3.1.8'),
-                ('WLD',      '4.5.4.1.5')
-            ):
-                if device in self.deviceName:
-                    deviceType = device
-                    sensorTreeID = '{}.{}'.format(enterprise, sensor_tree_id)
-                    break
-            else:
-                raise CheckHWGroupError(
-                    "Device '{}' not supported".format(self.deviceName)
-                )
-
             for i in (1, 2):
                 try:
-                    sensorID = int(self.SNMPReq('{}.{}'.format(sensorTreeID, i)))
+                    sensorID = int(self.SNMPReq('{}.{}.{}'.format(
+                        enterprise,
+                        {
+                            'Poseidon': '3.3.3.1.8',
+                            'Damocles': '3.4.3.1.8',
+                            'STE':      '4.1.3.1.8',
+                            'WLD':      '4.5.4.1.5'
+                        }[self.deviceType],
+                        i
+                    )))
                 except (ValueError, CheckHWGroupError):
                     continue
                 if sensorID == self.sensor:
@@ -168,7 +171,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                     '4.5.4.1.3',
                     '4.5.4.1.6'
                 )
-            }[deviceType]]
+            }[self.deviceType]]
 
             if not int(sensState):
                 raise CheckHWGroupError('getting sensor values failed')

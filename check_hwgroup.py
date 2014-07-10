@@ -74,14 +74,15 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         )
 
         self.deviceName = str(self.SNMPReq('.1.3.6.1.2.1.1.1.0'))
+        self.notSupported = CheckHWGroupError(
+            "Device '{}' not supported".format(self.deviceName)
+        )
         for device in ('Poseidon', 'Damocles', 'STE', 'WLD'):
             if device in self.deviceName:
                 self.deviceType = device
                 break
         else:
-            raise CheckHWGroupError(
-                "Device '{}' not supported".format(self.deviceName)
-            )
+            raise self.notSupported
 
     def SNMPReq(self, MIBInit):
         """Send a SNMP request and return the response
@@ -180,59 +181,79 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                 sensName,
                 float(sensValue) / 10
             )
-        elif self.contact is not None:
-            (
-                inpValue,
-                inpName,
-                inpAlarmSetup,
-                inpAlarmState
-            ) = [self.SNMPReq(
-                '{}.3.4.1.1.{}.{}'.format(enterprise, OID, self.contact)
-            ) for OID in xrange(2, 6)]
-
-            return (
-                '{} [AlarmState: {}, AlarmSetup: {}]'.format(
-                    inpName,
-                    (
-                        'normal',
-                        'alarm'
-                    )[int(inpAlarmState)],
-                    (
-                        'inactive',
-                        'activeOff',
-                        'activeOn'
-                    )[int(inpAlarmSetup)]
-                ),
-                float(inpValue)
-            )
         else:
-            (
-                outValue,
-                outName,
-                outType,
-                outMode
-            ) = [self.SNMPReq(
-                '{}.3.4.2.1.{}.{}'.format(enterprise, OID, self.output)
-            ) for OID in xrange(2, 6)]
+            try:
+                if self.contact is not None:
+                    (
+                        inpValue,
+                        inpName,
+                        inpAlarmSetup,
+                        inpAlarmState
+                    ) = [self.SNMPReq(
+                        '{}.3.{}.1.1.{}.{}'.format(
+                            enterprise,
+                            {
+                                'Damocles': 4,
+                                'Poseidon': 3
+                            }[self.deviceType],
+                            OID,
+                            self.contact
+                        )
+                    ) for OID in xrange(2, 6)]
 
-            return (
-                '{} [Type: {}, Mode: {}]'.format(
-                    outName,
+                    return (
+                        '{} [AlarmState: {}, AlarmSetup: {}]'.format(
+                            inpName,
+                            (
+                                'normal',
+                                'alarm'
+                            )[int(inpAlarmState)],
+                            (
+                                'inactive',
+                                'activeOff',
+                                'activeOn'
+                            )[int(inpAlarmSetup)]
+                        ),
+                        float(inpValue)
+                    )
+                else:
                     (
-                        'relay (off, on)',
-                        'rts (-10V,+10V)',
-                        'dtr (0V,+10V)'
-                    )[int(outType)],
-                    (
-                        'manual',
-                        'autoAlarm',
-                        'autoTriggerEq',
-                        'autoTriggerHi',
-                        'autoTriggerLo'
-                    )[int(outMode)]
-                ),
-                float(outValue)
-            )
+                        outValue,
+                        outName,
+                        outType,
+                        outMode
+                    ) = [self.SNMPReq(
+                        '{}.3.{}.2.1.{}.{}'.format(
+                            enterprise,
+                            {
+                                'Damocles': 4,
+                                'Poseidon': 3
+                            }[self.deviceType],
+                            OID,
+                            self.output
+                        )
+                    ) for OID in xrange(2, 6)]
+
+                    return (
+                        '{} [Type: {}, Mode: {}]'.format(
+                            outName,
+                            (
+                                'relay (off, on)',
+                                'rts (-10V,+10V)',
+                                'dtr (0V,+10V)'
+                            )[int(outType)],
+                            (
+                                'manual',
+                                'autoAlarm',
+                                'autoTriggerEq',
+                                'autoTriggerHi',
+                                'autoTriggerLo'
+                            )[int(outMode)]
+                        ),
+                        float(outValue)
+                    )
+            except KeyError:
+                raise self.notSupported
 
 
 def main():

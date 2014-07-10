@@ -94,9 +94,9 @@ class CheckHWGroupResource(nagiosplugin.Resource):
             lookupNames=True, lookupValues=True
         )
         if errorIndication:
-            raise CheckHWGroupError(errorIndication)
+            raise CheckHWGroupError('SNMP error: {}'.format(errorIndication))
         elif errorStatus:
-            raise CheckHWGroupError(errorStatus)
+            raise CheckHWGroupError('SNMP error: {}'.format(errorStatus))
         else:
             return str(varBinds[0][1])
 
@@ -131,7 +131,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
             for i in (1, 2):
                 try:
                     sensorID = int(self.SNMPReq('{}.{}'.format(sensorTreeID, i)))
-                except ValueError:
+                except (ValueError, CheckHWGroupError):
                     continue
                 if sensorID == self.sensor:
                     sensorID = i

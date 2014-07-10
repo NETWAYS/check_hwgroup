@@ -23,7 +23,7 @@ short | long        | type    | default    | description
       |             |         |            | to increase verbosity level)
 -H    | --host      | string  | (required) | the hostname or ipaddress
       |             |         |            | of the hwgroup device
--C    | --community | string  | public     | the snmp community
+-C    | --community | string  | public     | the SNMP community
       |             |         |            | of the hwgroup device
 -w    | --warning   | float   | (required) | warning threshold
 -c    | --critical  | float   | (required) | critical threshold

@@ -25,6 +25,8 @@ short | long        | type    | default    | description
       |             |         |            | of the hwgroup device
 -C    | --community | string  | public     | the SNMP community
       |             |         |            | of the hwgroup device
+-P    | --port      | integer | 161        | the port
+      |             |         |            | of the hwgroup device
 -w    | --warning   | float   | (required) | warning threshold
 -c    | --critical  | float   | (required) | critical threshold
 -S    | --sensor    | integer | (none)     | the sensor to check

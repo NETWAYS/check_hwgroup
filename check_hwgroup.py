@@ -42,7 +42,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
     """
     def __init__(
         self,
-        host, community,
+        host, community, port,
         sensor, contact, output,
         **kwargs
     ):
@@ -62,12 +62,14 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         (
             self.host,
             self.community,
+            self.port,
             self.sensor,
             self.contact,
             self.output
         ) = (
             host,
             community,
+            port,
             sensor,
             contact,
             output
@@ -99,7 +101,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
             varBinds
         ) = cmdgen.CommandGenerator().getCmd(
             cmdgen.CommunityData(self.community, mpModel=0),
-            cmdgen.UdpTransportTarget((self.host, 161)),
+            cmdgen.UdpTransportTarget((self.host, self.port)),
             cmdgen.MibVariable(MIBInit),
             lookupNames=True, lookupValues=True
         )
@@ -266,6 +268,8 @@ def main():
         ('H', 'host',      str,   object,   'The hostname or ipaddress '
                                             'of the hwgroup device'),
         ('C', 'community', str,   'public', 'The SNMP community '
+                                            'of the hwgroup device'),
+        ('P', 'port',      int,   161,      'The port '
                                             'of the hwgroup device'),
         ('w', 'warning',   float, object,   'Warning threshold'),
         ('c', 'critical',  float, object,   'Critical threshold')

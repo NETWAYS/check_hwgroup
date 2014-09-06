@@ -1,7 +1,9 @@
 check_hwgroup.py
 ================
 
-Checks the hwgroup environmental devices
+Checks the hwgroup environmental devices.
+
+The old perl implementation kept for historical reasons.
 
 Installation
 ------------

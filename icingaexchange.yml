@@ -1,9 +1,9 @@
 name: check_hwgroup
 description: "file:///README.md"
 url: "https://www.netways.org/projects/plugins"
-tags: ~
+tags: STE,Poseidon,WLD
 vendor: HWgroup,NETWAYS
-target: Temperature
+target: Temperature,Hardware
 type: Plugin
 license: gplv2
 releases: 

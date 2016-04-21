@@ -79,7 +79,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         self.notSupported = CheckHWGroupError(
             "Device '{}' not supported".format(self.deviceName)
         )
-        for device in ('Poseidon', 'Damocles', 'STE', 'WLD'):
+        for device in ('Poseidon', 'Damocles', 'STE2', 'STE', 'WLD'):
             if device in self.deviceName:
                 self.deviceType = device
                 break
@@ -132,6 +132,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                         {
                             'Poseidon': '3.3.3.1.8',
                             'Damocles': '3.4.3.1.8',
+                            'STE2':     '4.9.3.1.8',
                             'STE':      '4.1.3.1.8',
                             'WLD':      '4.5.4.1.5'
                         }[self.deviceType],
@@ -163,6 +164,11 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                     '3.4.3.1.2',
                     '3.4.3.1.4',
                     '3.4.3.1.6'
+                ),
+                'STE2': (
+                    '4.9.3.1.2',
+                    '4.9.3.1.3',
+                    '4.9.3.1.5'
                 ),
                 'STE': (
                     '4.1.3.1.2',

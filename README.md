@@ -1,36 +1,21 @@
-check_hwgroup.py
-================
+# check_hwgroup.py
 
 Checks the hwgroup environmental devices.
 
-The old perl implementation kept for historical reasons.
+# Installation
 
-Installation
-------------
+The plugin requires at least Python 3.
 
-Installation is just simple. You need Python 2.7 to run this.
+## Required Python Libraries
 
-### nagiosplugin Module
-
-You need the Python nagiosplugin package. More information can be found on
-
-* [Package website](http://pythonhosted.org/nagiosplugin/index.html)
-* [PyPi repository](https://pypi.python.org/pypi/nagiosplugin/)
-
-Extract the package, go into the directory and type
-
-    $ wget https://pypi.python.org/packages/source/n/nagiosplugin/nagiosplugin-1.2.1.tar.gz#md5=d81c724525e8e8b290d17046109e71d2
-    $ cd nagiosplugin-1.2.1
-    # python setup.py install
-
-### check_hwgroup
+* pysnmp
+* nagiosplugin
 
 Move the check_hwgroup.py script to your favorite ICINGA resource directory, e.g.
 
     # cp check_hwgroup.py /usr/local/icinga/libexec
 
-Usage
------
+# Usage
 
 ### Get help
 
@@ -81,12 +66,12 @@ Examples
     POSEIDON 2250 SNMP SUPERVISOR V1.0.13 OK - Sensor 240 is 25.8 | 'Sensor 240'=25.8;30.0;35.0
     $ echo $?
     0
-    
+
     $ ./check_hwgroup.py -H 192.168.144.120 -S 17946 -w 25.7 -c 35
     POSEIDON 2250 SNMP SUPERVISOR V1.0.13 WARNING - Sensor 240 is 25.8 (outside range 0:25.7) | 'Sensor 240'=25.8;25.7;35.0
     $ echo $?
     1
-    
+
     $ ./check_hwgroup.py -H 192.168.144.120 -S 17946 -w 25.7 -c 25.7
     POSEIDON 2250 SNMP SUPERVISOR V1.0.13 CRITICAL - Sensor 240 is 25.8 (outside range 0:25.7) | 'Sensor 240'=25.8;25.7;25.7
     $ echo $?
@@ -108,19 +93,3 @@ Frequently occurred user errors
     ERROR: Sensor ID (17947) not found
     $ echo $?
     3
-
-Where to buy
-------------
-
-Product can be found here:
-[NETWAYS Shop](http://shop.netways.de/ueberwachung/hw-group.html)
-
-Bugs and repository
--------------------
-
-For chorus of praise or complaints you can go here:
-
-* https://git.netways.org/plugins/check_hwgroup
-* https://www.netways.org/projects/plugins
-
-Native git access: git://git.netways.org/plugins/check_hwgroup.git

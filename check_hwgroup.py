@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
+
 import sys
 from argparse import ArgumentParser
 from pysnmp.entity.rfc3413.oneliner import cmdgen
@@ -207,7 +207,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                             OID,
                             self.contact
                         )
-                    ) for OID in xrange(2, 6)]
+                    ) for OID in range(2, 6)]
 
                     return (
                         '{} [AlarmState: {}, AlarmSetup: {}]'.format(
@@ -240,7 +240,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                             OID,
                             self.output
                         )
-                    ) for OID in xrange(2, 6)]
+                    ) for OID in range(2, 6)]
 
                     return (
                         '{} [Type: {}, Mode: {}]'.format(
@@ -270,37 +270,23 @@ def main():
     )
     argp.add_argument('-V', '--version', action='version', version='1.0')
     argp.add_argument('-v', '--verbose', action='count', default=0)
-    for (short, long, type, default, help) in (
-        ('H', 'host',      str,   object,   'The hostname or ipaddress '
-                                            'of the hwgroup device'),
-        ('C', 'community', str,   'public', 'The SNMP community '
-                                            'of the hwgroup device'),
-        ('P', 'port',      int,   161,      'The port '
-                                            'of the hwgroup device'),
-        ('w', 'warning',   float, object,   'Warning threshold'),
-        ('c', 'critical',  float, object,   'Critical threshold')
-    ):
-        argp.add_argument(
-            '-{}'.format(short),
-            '--{}'.format(long),
-            type=type,
-            default=default,
-            help=help,
-            required=default is object
-        )
+
+    argp.add_argument('-H', '--Host', type=str, required=True,
+                      help='The hostname or ipaddress of the hwgroup device')
+    argp.add_argument('-C', '--community', type=str, default='public',
+                      help='The SNMP community of the hwgroup device')
+    argp.add_argument('-P', '--port', default=161,
+                      help='The port of the hwgroup device')
+    argp.add_argument('-w', '--warning', type=float, required=True,
+                      help='Warning threshold')
+    argp.add_argument('-c', '--critival', type=float, required=True,
+                      help='Critical threshold')
+
     SIO = argp.add_mutually_exclusive_group(required=True)
-    for (short, long, help) in (
-        ('S', 'sensor',  'The sensor to check'),
-        ('I', 'contact', 'The dry contact to check'),
-        ('O', 'output',  'The relay output to check')
-    ):
-        SIO.add_argument(
-            '-{}'.format(short),
-            '--{}'.format(long),
-            type=int,
-            help=help,
-            default=None
-        )
+    SIO.add_argument('-S', '--sensor', help='The sensor to check')
+    SIO.add_argument('-I', '--contact', help='The dry contact to checkThe sensor to ')
+    SIO.add_argument('-O', '--output', help='The relay output to check')
+
     try:
         args = vars(argp.parse_args())
     except SystemExit:

@@ -6,16 +6,10 @@ Checks the hwgroup environmental devices.
 
 The plugin requires at least Python 3.
 
-You need the Python nagiosplugin package. More information can be found on
+## Required Python Libraries
 
-* [Package website](http://pythonhosted.org/nagiosplugin/index.html)
-* [PyPi repository](https://pypi.python.org/pypi/nagiosplugin/)
-
-Extract the package, go into the directory and type
-
-    $ wget https://pypi.python.org/packages/source/n/nagiosplugin/nagiosplugin-1.2.1.tar.gz#md5=d81c724525e8e8b290d17046109e71d2
-    $ cd nagiosplugin-1.2.1
-    # python setup.py install
+* pysnmp
+* nagiosplugin
 
 Move the check_hwgroup.py script to your favorite ICINGA resource directory, e.g.
 

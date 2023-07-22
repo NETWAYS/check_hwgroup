@@ -271,7 +271,7 @@ def main():
     argp.add_argument('-V', '--version', action='version', version='1.0')
     argp.add_argument('-v', '--verbose', action='count', default=0)
 
-    argp.add_argument('-H', '--Host', type=str, required=True,
+    argp.add_argument('-H', '--host', type=str, required=True,
                       help='The hostname or ipaddress of the hwgroup device')
     argp.add_argument('-C', '--community', type=str, default='public',
                       help='The SNMP community of the hwgroup device')
@@ -279,7 +279,7 @@ def main():
                       help='The port of the hwgroup device')
     argp.add_argument('-w', '--warning', type=float, required=True,
                       help='Warning threshold')
-    argp.add_argument('-c', '--critival', type=float, required=True,
+    argp.add_argument('-c', '--critical', type=float, required=True,
                       help='Critical threshold')
 
     SIO = argp.add_mutually_exclusive_group(required=True)

@@ -8,7 +8,7 @@ The plugin requires at least Python 3.
 
 ## Required Python Libraries
 
-* pysnmp
+* pysnmplib
 * nagiosplugin
 
 Move the check_hwgroup.py script to your favorite ICINGA resource directory, e.g.

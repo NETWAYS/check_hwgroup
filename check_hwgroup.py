@@ -167,7 +167,8 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                 raise CheckHWGroupError('getting sensor values failed')
 
             return (sensName, float(sensValue) / 10)
-        else:
+
+        if self.sensor is None:
             try:
                 if self.contact is not None:
                     (
@@ -202,42 +203,42 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                         ),
                         float(inpValue)
                     )
-                else:
-                    (
-                        outValue,
-                        outName,
-                        outType,
-                        outMode
-                    ) = [self.SNMPReq(
-                        '{}.3.{}.2.1.{}.{}'.format(
-                            enterprise,
-                            {
-                                'Damocles': 4,
-                                'Poseidon': 3
-                            }[self.deviceType],
-                            OID,
-                            self.output
-                        )
-                    ) for OID in range(2, 6)]
 
-                    return (
-                        '{} [Type: {}, Mode: {}]'.format(
-                            outName,
-                            (
-                                'relay (off, on)',
-                                'rts (-10V,+10V)',
-                                'dtr (0V,+10V)'
-                            )[int(outType)],
-                            (
-                                'manual',
-                                'autoAlarm',
-                                'autoTriggerEq',
-                                'autoTriggerHi',
-                                'autoTriggerLo'
-                            )[int(outMode)]
-                        ),
-                        float(outValue)
+                (
+                    outValue,
+                    outName,
+                    outType,
+                    outMode
+                ) = [self.SNMPReq(
+                    '{}.3.{}.2.1.{}.{}'.format(
+                        enterprise,
+                        {
+                            'Damocles': 4,
+                            'Poseidon': 3
+                        }[self.deviceType],
+                        OID,
+                        self.output
                     )
+                ) for OID in range(2, 6)]
+
+                return (
+                    '{} [Type: {}, Mode: {}]'.format(
+                        outName,
+                        (
+                            'relay (off, on)',
+                            'rts (-10V,+10V)',
+                            'dtr (0V,+10V)'
+                        )[int(outType)],
+                        (
+                            'manual',
+                            'autoAlarm',
+                            'autoTriggerEq',
+                            'autoTriggerHi',
+                            'autoTriggerLo'
+                        )[int(outMode)]
+                    ),
+                    float(outValue)
+                )
             except KeyError:
                 raise self.notSupported # pylint: disable=raise-missing-from
 

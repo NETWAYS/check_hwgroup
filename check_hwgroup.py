@@ -260,9 +260,9 @@ def commandline(args):
                       help='Critical threshold')
 
     SIO = argp.add_mutually_exclusive_group(required=True)
-    SIO.add_argument('-S', '--sensor', help='The sensor to check')
-    SIO.add_argument('-I', '--contact', help='The dry contact to checkThe sensor to')
-    SIO.add_argument('-O', '--output', help='The relay output to check')
+    SIO.add_argument('-S', '--sensor', type=int, help='The sensor to check')
+    SIO.add_argument('-I', '--contact', type=int, help='The dry contact to checkThe sensor to')
+    SIO.add_argument('-O', '--output', type=int, help='The relay output to check')
 
     return argp.parse_args(args)
 

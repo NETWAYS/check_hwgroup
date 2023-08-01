@@ -15,7 +15,7 @@ from check_hwgroup import CheckHWGroupError
 class CLITesting(unittest.TestCase):
 
     def test_commandline(self):
-        actual = commandline(['-H', 'localhost', '-C', 'foobar', '-w', '5', '-c', '10', '-S', 'sensor'])
+        actual = commandline(['-H', 'localhost', '-C', 'foobar', '-w', '5', '-c', '10', '-S', '216'])
         self.assertEqual(actual.host, 'localhost')
         self.assertEqual(actual.community, 'foobar')
         self.assertEqual(actual.critical, 10)

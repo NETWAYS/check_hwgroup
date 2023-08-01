@@ -40,14 +40,9 @@ class CheckHWGroupResource(nagiosplugin.Resource):
     """
     The resource for fetching sensor/contact/output values
     """
-    def __init__(
-        self,
-        host, community, port,
-        sensor, contact, output,
-        **kwargs
-    ):
-        """Prepare the resource
-
+    def __init__(self, host, community, port, sensor, contact, output):
+        """
+        Prepare the resource
         :param host: target host
         :type host: str
         :param community: SNMP community
@@ -59,31 +54,22 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         :param output: target output
         :type output: int
         """
-        (
-            self.host,
-            self.community,
-            self.port,
-            self.sensor,
-            self.contact,
-            self.output
-        ) = (
-            host,
-            community,
-            port,
-            sensor,
-            contact,
-            output
-        )
+        self.host = host
+        self.community = community
+        self.port = port
+        self.sensor = sensor
+        self.contact = contact
+        self.output = output
 
         self.deviceName = str(self.SNMPReq('.1.3.6.1.2.1.1.1.0'))
-        self.notSupported = CheckHWGroupError(
-            "Device '{}' not supported".format(self.deviceName)
-        )
-        for device in ('Poseidon', 'Damocles', 'STE2', 'STE', 'WLD'):
-            if device in self.deviceName:
-                self.deviceType = device
-                break
-        else:
+        self.notSupported = CheckHWGroupError("Device '{}' not supported".format(self.deviceName))
+
+        supportedDevices = ('Poseidon', 'Damocles', 'STE2', 'STE', 'WLD')
+
+        # Check if supported Device string is in deviceName, if empty list throw error
+        self.deviceType = "".join([devType for devType in supportedDevices if devType in self.deviceName])
+
+        if self.deviceType == "":
             raise self.notSupported
 
     def SNMPReq(self, MIBInit):
@@ -94,23 +80,20 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         :rtype: str
         :raise CheckHWGroupError: if a SNMP error occurs
         """
-        (
-            errorIndication,
-            errorStatus,
-            errorIndex,
-            varBinds
-        ) = cmdgen.CommandGenerator().getCmd(
+        errorIndication, errorStatus, _, varBinds = cmdgen.CommandGenerator().getCmd(
             cmdgen.CommunityData(self.community, mpModel=0),
             cmdgen.UdpTransportTarget((self.host, self.port)),
             cmdgen.MibVariable(MIBInit),
-            lookupNames=True, lookupValues=True
-        )
+            lookupNames=True,
+            lookupValues=True)
+
         if errorIndication:
             raise CheckHWGroupError('SNMP error: {}'.format(errorIndication))
-        elif errorStatus:
+
+        if errorStatus:
             raise CheckHWGroupError('SNMP error: {}'.format(errorStatus))
-        else:
-            return str(varBinds[0][1])
+
+        return str(varBinds[0][1])
 
     def probe(self):
         """Fetch values
@@ -144,9 +127,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                     sensorID = i
                     break
             else:
-                raise CheckHWGroupError(
-                    'Sensor ID ({}) not found'.format(self.sensor)
-                )
+                raise CheckHWGroupError('Sensor ID ({}) not found'.format(self.sensor))
 
             (
                 sensName,
@@ -185,11 +166,9 @@ class CheckHWGroupResource(nagiosplugin.Resource):
             if not int(sensState):
                 raise CheckHWGroupError('getting sensor values failed')
 
-            return (
-                sensName,
-                float(sensValue) / 10
-            )
-        else:
+            return (sensName, float(sensValue) / 10)
+
+        if self.sensor is None:
             try:
                 if self.contact is not None:
                     (
@@ -224,53 +203,51 @@ class CheckHWGroupResource(nagiosplugin.Resource):
                         ),
                         float(inpValue)
                     )
-                else:
-                    (
-                        outValue,
-                        outName,
-                        outType,
-                        outMode
-                    ) = [self.SNMPReq(
-                        '{}.3.{}.2.1.{}.{}'.format(
-                            enterprise,
-                            {
-                                'Damocles': 4,
-                                'Poseidon': 3
-                            }[self.deviceType],
-                            OID,
-                            self.output
-                        )
-                    ) for OID in range(2, 6)]
 
-                    return (
-                        '{} [Type: {}, Mode: {}]'.format(
-                            outName,
-                            (
-                                'relay (off, on)',
-                                'rts (-10V,+10V)',
-                                'dtr (0V,+10V)'
-                            )[int(outType)],
-                            (
-                                'manual',
-                                'autoAlarm',
-                                'autoTriggerEq',
-                                'autoTriggerHi',
-                                'autoTriggerLo'
-                            )[int(outMode)]
-                        ),
-                        float(outValue)
+                (
+                    outValue,
+                    outName,
+                    outType,
+                    outMode
+                ) = [self.SNMPReq(
+                    '{}.3.{}.2.1.{}.{}'.format(
+                        enterprise,
+                        {
+                            'Damocles': 4,
+                            'Poseidon': 3
+                        }[self.deviceType],
+                        OID,
+                        self.output
                     )
+                ) for OID in range(2, 6)]
+
+                return (
+                    '{} [Type: {}, Mode: {}]'.format(
+                        outName,
+                        (
+                            'relay (off, on)',
+                            'rts (-10V,+10V)',
+                            'dtr (0V,+10V)'
+                        )[int(outType)],
+                        (
+                            'manual',
+                            'autoAlarm',
+                            'autoTriggerEq',
+                            'autoTriggerHi',
+                            'autoTriggerLo'
+                        )[int(outMode)]
+                    ),
+                    float(outValue)
+                )
             except KeyError:
-                raise self.notSupported
+                raise self.notSupported # pylint: disable=raise-missing-from
 
 
-def main():
-    argp = ArgumentParser(
-        description='checks the hwgroup environmental devices'
-    )
+def commandline(args):
+    argp = ArgumentParser(description='checks the hwgroup environmental devices')
+
     argp.add_argument('-V', '--version', action='version', version='1.0')
     argp.add_argument('-v', '--verbose', action='count', default=0)
-
     argp.add_argument('-H', '--host', type=str, required=True,
                       help='The hostname or ipaddress of the hwgroup device')
     argp.add_argument('-C', '--community', type=str, default='public',
@@ -284,29 +261,33 @@ def main():
 
     SIO = argp.add_mutually_exclusive_group(required=True)
     SIO.add_argument('-S', '--sensor', help='The sensor to check')
-    SIO.add_argument('-I', '--contact', help='The dry contact to checkThe sensor to ')
+    SIO.add_argument('-I', '--contact', help='The dry contact to checkThe sensor to')
     SIO.add_argument('-O', '--output', help='The relay output to check')
 
-    try:
-        args = vars(argp.parse_args())
-    except SystemExit:
-        sys.exit(3)
+    return argp.parse_args(args)
 
+
+def main(args):
     try:
-        resource = CheckHWGroupResource(**args)
+        resource = CheckHWGroupResource(args.host, args.community, args.port, args.sensor, args.contact, args.output)
         check = nagiosplugin.Check(
             resource,
-            nagiosplugin.ScalarContext(
-                'check_hwgroup',
-                args['warning'],
-                args['critical']
-            ),
+            nagiosplugin.ScalarContext('check_hwgroup', args.warning, args.critical),
         )
         check.name = resource.deviceName
-        check.main(min(args['verbose'], 3))
+        check.main(min(args.verbose, 3))
     except CheckHWGroupError as e:
-        print('ERROR:', e, file=sys.stderr)
-        sys.exit(3)
+        print("[UNKNOWN] - Error: %s" % (str(e)))
+        return 3
 
-if __name__ == '__main__':
-    main()
+
+if __name__ == '__main__': # pragma: no cover
+    try:
+        ARGS = commandline(sys.argv[1:])
+        sys.exit(main(ARGS))
+    except SystemExit:
+        # Re-throw the exception
+        raise sys.exc_info()[1].with_traceback(sys.exc_info()[2]) # pylint: disable=raise-missing-from
+    except: # pylint: disable=bare-except
+        print("[UNKNOWN] - Error: %s" % (str(sys.exc_info()[1])))
+        sys.exit(3)

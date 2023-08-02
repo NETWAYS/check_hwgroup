@@ -10,6 +10,7 @@ sys.path.append('..')
 from check_hwgroup import commandline
 from check_hwgroup import CheckHWGroupResource
 from check_hwgroup import CheckHWGroupError
+from check_hwgroup import main
 
 
 class CLITesting(unittest.TestCase):
@@ -19,6 +20,57 @@ class CLITesting(unittest.TestCase):
         self.assertEqual(actual.host, 'localhost')
         self.assertEqual(actual.community, 'foobar')
         self.assertEqual(actual.critical, 10)
+
+    def test_commandline_error(self):
+        with self.assertRaises(SystemExit):
+            # Mutual Exclusive
+            commandline(['-H', 'localhost', '-C', 'foobar', '-w', '5', '-c', '10', '-S', '216', '-I', 0])
+
+        with self.assertRaises(SystemExit):
+            # Not an int
+            commandline(['-H', 'localhost', '-C', 'foobar', '-w', '5', '-c', '10', '-S', 'foo'])
+
+class MainTesting(unittest.TestCase):
+
+    @mock.patch('builtins.print')
+    def test_main_error(self, mock_print):
+        def SNMPReq(x,y):
+            return 'Poseidon 1337'
+
+        CheckHWGroupResource.SNMPReq = SNMPReq
+        args = commandline(['-H', 'localhost', '-C', 'foobar', '-w', '5', '-c', '10', '-S', '216'])
+
+        actual = main(args)
+        self.assertEqual(actual, 3)
+
+        mock_print.assert_called_with('[UNKNOWN] - Error: Sensor ID (216) not found')
+
+    @mock.patch('builtins.print')
+    def test_main(self, mock_print):
+        m = mock.MagicMock()
+
+        def side_effect(arg):
+            values = {
+                '.1.3.6.1.2.1.1.1.0': 'Poseidon 1337',
+                '.1.3.6.1.4.1.21796.3.3.3.1.8.1': '666', # SensorID
+                '.1.3.6.1.4.1.21796.3.3.3.1.8.2': '111', # SensState Poseidon
+                '.1.3.6.1.4.1.21796.3.3.3.1.2.1': 'poseidon', # SensName
+                '.1.3.6.1.4.1.21796.3.3.3.1.4.1': '222', # SensState
+                '.1.3.6.1.4.1.21796.3.3.3.1.6.1': '333'  # SensValue
+            }
+            return values[arg]
+
+        m.side_effect = side_effect
+
+        # Monkey Patch request function with mock
+        CheckHWGroupResource.SNMPReq = m
+
+        args = commandline(['-H', 'localhost', '-C', 'foobar', '-w', '5', '-c', '10', '-S', '666'])
+
+        with self.assertRaises(SystemExit):
+            main(args)
+
+        mock_print.assert_called_with('POSEIDON 1337 CRITICAL - poseidon is 33.3 (outside range 0:10.0) | poseidon=33.3;5.0;10.0\n', end='', file=None)
 
 class CheckTesting(unittest.TestCase):
 

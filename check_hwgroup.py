@@ -27,6 +27,41 @@ import nagiosplugin
 
 enterprise = '.1.3.6.1.4.1.21796'
 
+sensor_ids = {
+    'Poseidon': '3.3.3.1.8',
+    'Damocles': '3.4.3.1.8',
+    'STE2':     '4.9.3.1.8',
+    'STE':      '4.1.3.1.8',
+    'WLD':      '4.5.4.1.5'
+}
+
+sensor_paths = {
+    'Poseidon': (
+        '3.3.3.1.2',
+        '3.3.3.1.4',
+        '3.3.3.1.6'
+    ),
+    'Damocles': (
+        '3.4.3.1.2',
+        '3.4.3.1.4',
+        '3.4.3.1.6'
+    ),
+    'STE2': (
+        '4.9.3.1.2',
+        '4.9.3.1.3',
+        '4.9.3.1.5'
+    ),
+    'STE': (
+        '4.1.3.1.2',
+        '4.1.3.1.3',
+        '4.1.3.1.5'
+    ),
+    'WLD': (
+        '4.5.4.1.2',
+        '4.5.4.1.3',
+        '4.5.4.1.6'
+    )
+}
 
 class CheckHWGroupError(Exception):
     """
@@ -106,142 +141,52 @@ class CheckHWGroupResource(nagiosplugin.Resource):
             context='check_hwgroup'
         )
 
-    def _probe(self):
-        if self.sensor is not None:
-            for i in (1, 2):
-                try:
-                    sensorID = int(self.SNMPReq('{}.{}.{}'.format(
-                        enterprise,
-                        {
-                            'Poseidon': '3.3.3.1.8',
-                            'Damocles': '3.4.3.1.8',
-                            'STE2':     '4.9.3.1.8',
-                            'STE':      '4.1.3.1.8',
-                            'WLD':      '4.5.4.1.5'
-                        }[self.deviceType],
-                        i
-                    )))
-                except (ValueError, CheckHWGroupError):
-                    continue
-                if sensorID == self.sensor:
-                    sensorID = i
-                    break
-            else:
-                raise CheckHWGroupError('Sensor ID ({}) not found'.format(self.sensor))
-
-            (
-                sensName,
-                sensState,
-                sensValue
-            ) = [self.SNMPReq(
-                '{}.{}.{}'.format(enterprise, OID, sensorID)
-            ) for OID in {
-                'Poseidon': (
-                    '3.3.3.1.2',
-                    '3.3.3.1.4',
-                    '3.3.3.1.6'
-                ),
-                'Damocles': (
-                    '3.4.3.1.2',
-                    '3.4.3.1.4',
-                    '3.4.3.1.6'
-                ),
-                'STE2': (
-                    '4.9.3.1.2',
-                    '4.9.3.1.3',
-                    '4.9.3.1.5'
-                ),
-                'STE': (
-                    '4.1.3.1.2',
-                    '4.1.3.1.3',
-                    '4.1.3.1.5'
-                ),
-                'WLD': (
-                    '4.5.4.1.2',
-                    '4.5.4.1.3',
-                    '4.5.4.1.6'
-                )
-            }[self.deviceType]]
-
-            if not int(sensState):
-                raise CheckHWGroupError('getting sensor values failed')
-
-            return (sensName, float(sensValue) / 10)
-
-        if self.sensor is None:
+    def _probe_sensor(self):
+        for ident in (1, 2):
             try:
-                if self.contact is not None:
-                    (
-                        inpValue,
-                        inpName,
-                        inpAlarmSetup,
-                        inpAlarmState
-                    ) = [self.SNMPReq(
-                        '{}.3.{}.1.1.{}.{}'.format(
-                            enterprise,
-                            {
-                                'Damocles': 4,
-                                'Poseidon': 3
-                            }[self.deviceType],
-                            OID,
-                            self.contact
-                        )
-                    ) for OID in range(2, 6)]
+                sensorID = int(self.SNMPReq('{}.{}.{}'.format(enterprise, sensor_ids[self.deviceType], ident)))
+            except (ValueError, CheckHWGroupError):
+                continue
+            if sensorID == self.sensor:
+                sensorID = ident
+                break
+        else:
+            raise CheckHWGroupError('Sensor ID ({}) not found'.format(self.sensor))
 
-                    return (
-                        '{} [AlarmState: {}, AlarmSetup: {}]'.format(
-                            inpName,
-                            (
-                                'normal',
-                                'alarm'
-                            )[int(inpAlarmState)],
-                            (
-                                'inactive',
-                                'activeOff',
-                                'activeOn'
-                            )[int(inpAlarmSetup)]
-                        ),
-                        float(inpValue)
-                    )
+        (sensName, sensState, sensValue) = [self.SNMPReq('{}.{}.{}'.format(enterprise, OID, sensorID)) for OID in sensor_paths[self.deviceType]]
 
-                (
-                    outValue,
-                    outName,
-                    outType,
-                    outMode
-                ) = [self.SNMPReq(
-                    '{}.3.{}.2.1.{}.{}'.format(
-                        enterprise,
-                        {
-                            'Damocles': 4,
-                            'Poseidon': 3
-                        }[self.deviceType],
-                        OID,
-                        self.output
-                    )
-                ) for OID in range(2, 6)]
+        if not int(sensState):
+            raise CheckHWGroupError('getting sensor values failed')
 
-                return (
-                    '{} [Type: {}, Mode: {}]'.format(
-                        outName,
-                        (
-                            'relay (off, on)',
-                            'rts (-10V,+10V)',
-                            'dtr (0V,+10V)'
-                        )[int(outType)],
-                        (
-                            'manual',
-                            'autoAlarm',
-                            'autoTriggerEq',
-                            'autoTriggerHi',
-                            'autoTriggerLo'
-                        )[int(outMode)]
-                    ),
-                    float(outValue)
-                )
-            except KeyError:
-                raise self.notSupported # pylint: disable=raise-missing-from
+        return (sensName, float(sensValue) / 10)
 
+    def _probe_contact(self):
+        (inpValue, inpName, inpAlarmSetup, inpAlarmState) = [self.SNMPReq('{}.3.{}.1.1.{}.{}'.format(enterprise,{'Damocles': 4, 'Poseidon': 3}[self.deviceType], OID, self.contact)) for OID in range(2, 6)]
+
+        contactName = '{} [AlarmState: {}, AlarmSetup: {}]'.format(
+            inpName,
+            ('normal', 'alarm')[int(inpAlarmState)],
+            ('inactive', 'activeOff', 'activeOn')[int(inpAlarmSetup)])
+
+        return (contactName, float(inpValue))
+
+    def _probe_output(self):
+        (outValue, outName, outType, outMode) = [self.SNMPReq('{}.3.{}.2.1.{}.{}'.format(enterprise, {'Damocles': 4, 'Poseidon': 3}[self.deviceType], OID, self.output)) for OID in range(2, 6)]
+
+        outputName = '{} [Type: {}, Mode: {}]'.format(
+            outName,
+            ('relay (off, on)', 'rts (-10V,+10V)', 'dtr (0V,+10V)')[int(outType)],
+            ('manual', 'autoAlarm','autoTriggerEq', 'autoTriggerHi', 'autoTriggerLo')[int(outMode)])
+
+        return (outputName, float(outValue))
+
+    def _probe(self):
+        if self.sensor:
+            return self._probe_sensor()
+        if not self.sensor and self.contact:
+            return self._probe_contact()
+        if not self.sensor and not self.contact:
+            return self._probe_output()
 
 def commandline(args):
     argp = ArgumentParser(description='checks the hwgroup environmental devices')

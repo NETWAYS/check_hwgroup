@@ -25,6 +25,8 @@ from argparse import ArgumentParser
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 import nagiosplugin
 
+__version__ = '1.2.0'
+
 enterprise = '.1.3.6.1.4.1.21796'
 
 sensor_ids = {
@@ -189,9 +191,9 @@ class CheckHWGroupResource(nagiosplugin.Resource):
             return self._probe_output()
 
 def commandline(args):
-    argp = ArgumentParser(description='checks the hwgroup environmental devices')
+    argp = ArgumentParser(description='Check Plugin for the hwgroup environmental devices.')
 
-    argp.add_argument('-V', '--version', action='version', version='1.0')
+    argp.add_argument('-V', '--version', action='version', version=__version__)
     argp.add_argument('-v', '--verbose', action='count', default=0)
     argp.add_argument('-H', '--host', type=str, required=True,
                       help='The hostname or ipaddress of the hwgroup device')

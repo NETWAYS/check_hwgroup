@@ -65,6 +65,11 @@ sensor_paths = {
     )
 }
 
+device_types = {
+    'Damocles': 4,
+    'Poseidon': 3
+}
+
 class CheckHWGroupError(Exception):
     """
     CheckHWGroupError MAY be raised at runtime
@@ -164,7 +169,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         return (sensName, float(sensValue) / 10)
 
     def _probe_contact(self):
-        (inpValue, inpName, inpAlarmSetup, inpAlarmState) = [self.SNMPReq('{}.3.{}.1.1.{}.{}'.format(enterprise,{'Damocles': 4, 'Poseidon': 3}[self.deviceType], OID, self.contact)) for OID in range(2, 6)]
+        (inpValue, inpName, inpAlarmSetup, inpAlarmState) = [self.SNMPReq('{}.3.{}.1.1.{}.{}'.format(enterprise, device_types[self.deviceType], OID, self.contact)) for OID in range(2, 6)]
 
         contactName = '{} [AlarmState: {}, AlarmSetup: {}]'.format(
             inpName,
@@ -174,7 +179,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         return (contactName, float(inpValue))
 
     def _probe_output(self):
-        (outValue, outName, outType, outMode) = [self.SNMPReq('{}.3.{}.2.1.{}.{}'.format(enterprise, {'Damocles': 4, 'Poseidon': 3}[self.deviceType], OID, self.output)) for OID in range(2, 6)]
+        (outValue, outName, outType, outMode) = [self.SNMPReq('{}.3.{}.2.1.{}.{}'.format(enterprise, device_types[self.deviceType], OID, self.output)) for OID in range(2, 6)]
 
         outputName = '{} [Type: {}, Mode: {}]'.format(
             outName,

@@ -85,6 +85,17 @@ class CheckTesting(unittest.TestCase):
         self.assertEqual(check.deviceName, 'Poseidon 1337')
         self.assertEqual(check.deviceType, 'Poseidon')
 
+    def test_checkhw_ste2(self):
+
+        def SNMPReq(x,y):
+            return 'STE2 r2, fw:1.5.4_2373'
+
+        CheckHWGroupResource.SNMPReq = SNMPReq
+        check = CheckHWGroupResource('host', 'community', 1234, 'sensor', 'contact', 'output')
+
+        self.assertEqual(check.deviceName, 'STE2 r2, fw:1.5.4_2373')
+        self.assertEqual(check.deviceType, 'STE2')
+
     def test_checkhw_unsupported(self):
 
         def SNMPReq(x,y):

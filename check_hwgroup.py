@@ -102,11 +102,12 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         self.notSupported = CheckHWGroupError("Device '{}' not supported".format(self.deviceName))
 
         supportedDevices = ('Poseidon', 'Damocles', 'STE2', 'STE', 'WLD')
-
         # Check if supported Device string is in deviceName, if empty list throw error
-        self.deviceType = "".join([devType for devType in supportedDevices if devType in self.deviceName])
-
-        if self.deviceType == "":
+        for device in supportedDevices:
+            if device in self.deviceName:
+                self.deviceType = device
+                break
+        else:
             raise self.notSupported
 
     def SNMPReq(self, MIBInit):

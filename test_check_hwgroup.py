@@ -198,3 +198,60 @@ class CheckTesting(unittest.TestCase):
         actual = check._probe()
         expected =  ('barfoo [Type: rts (-10V,+10V), Mode: autoTriggerEq]', 333.0)
         self.assertEqual(actual, expected)
+
+
+    def test_probe_ste2_sensor(self):
+        m = mock.MagicMock()
+
+        def side_effect(arg):
+            values = {
+                '.1.3.6.1.2.1.1.1.0': 'STE2 r2, fw:1.5.4_2373',
+                '.1.3.6.1.4.1.21796.4.9.3.1.8.1': '14223',
+                '.1.3.6.1.4.1.21796.4.9.3.1.8.2': '24167',
+                '.1.3.6.1.4.1.21796.4.9.3.1.2.1': 'Sensor 14223',
+                '.1.3.6.1.4.1.21796.4.9.3.1.2.2': 'Sensor 24167',
+                '.1.3.6.1.4.1.21796.4.9.3.1.3.1': '1',
+                '.1.3.6.1.4.1.21796.4.9.3.1.3.2': '1',
+                '.1.3.6.1.4.1.21796.4.9.3.1.5.1': '428',
+                '.1.3.6.1.4.1.21796.4.9.3.1.5.2': '221'
+            }
+            return values[arg]
+
+        m.side_effect = side_effect
+
+        # Monkey Patch request function with mock
+        CheckHWGroupResource.SNMPReq = m
+
+        check = CheckHWGroupResource('host', 'community', 1234, sensor=14223, contact=None, output=None)
+
+        actual = check._probe()
+        expected =  ('Sensor 14223', 42.8)
+        self.assertEqual(actual, expected)
+
+
+    def test_probe_ste2_contact(self):
+        m = mock.MagicMock()
+
+        def side_effect(arg):
+            values = {
+                '.1.3.6.1.2.1.1.1.0': 'STE2 r2, fw:1.5.4_2373',
+                '.1.3.6.1.4.1.21796.4.9.3.1.8.1': '14223',
+                '.1.3.6.1.4.1.21796.4.9.3.1.8.2': '24167',
+                '.1.3.6.1.4.1.21796.4.9.3.1.2.1': 'Sensor 14223',
+                '.1.3.6.1.4.1.21796.4.9.3.1.2.2': 'Sensor 24167',
+                '.1.3.6.1.4.1.21796.4.9.3.1.3.1': '1',
+                '.1.3.6.1.4.1.21796.4.9.3.1.3.2': '1',
+                '.1.3.6.1.4.1.21796.4.9.3.1.5.1': '428',
+                '.1.3.6.1.4.1.21796.4.9.3.1.5.2': '221'
+            }
+            return values[arg]
+
+        m.side_effect = side_effect
+
+        # Monkey Patch request function with mock
+        CheckHWGroupResource.SNMPReq = m
+
+        check = CheckHWGroupResource('host', 'community', 1234, sensor=None, contact=666, output=None)
+
+        with self.assertRaises(CheckHWGroupError):
+            check._probe()

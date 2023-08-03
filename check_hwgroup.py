@@ -191,9 +191,19 @@ class CheckHWGroupResource(nagiosplugin.Resource):
     def _probe(self):
         if self.sensor:
             return self._probe_sensor()
+
         if not self.sensor and self.contact:
+
+            if self.deviceType not in ['Damocles', 'Poseidon']:
+                raise CheckHWGroupError("Checking contact is not supported with this device")
+
             return self._probe_contact()
+
         if not self.sensor and not self.contact:
+
+            if self.deviceType not in ['Damocles', 'Poseidon']:
+                raise CheckHWGroupError("Checking output is not supported with this device")
+
             return self._probe_output()
 
 def commandline(args):

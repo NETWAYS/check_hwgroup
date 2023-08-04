@@ -224,8 +224,8 @@ def commandline(args):
 
     SIO = argp.add_mutually_exclusive_group(required=True)
     SIO.add_argument('-S', '--sensor', type=int, help='The sensor to check')
-    SIO.add_argument('-I', '--contact', type=int, help='The dry contact to checkThe sensor to')
-    SIO.add_argument('-O', '--output', type=int, help='The relay output to check')
+    SIO.add_argument('-I', '--contact', type=int, help='The dry contact to check the sensor to. Only for Damocles, Poseidon')
+    SIO.add_argument('-O', '--output', type=int, help='The relay output to check. Only for Damocles, Poseidon')
 
     return argp.parse_args(args)
 

@@ -164,7 +164,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         (sensName, sensState, sensValue) = [self.SNMPReq('{}.{}.{}'.format(enterprise, OID, sensorID)) for OID in sensor_paths[self.deviceType]]
 
         if not int(sensState):
-            raise CheckHWGroupError('getting sensor values failed')
+            raise CheckHWGroupError('Error. No sensor attached')
 
         return (sensName, float(sensValue) / 10)
 

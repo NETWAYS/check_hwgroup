@@ -1,12 +1,10 @@
-# check_hwgroup.py
+# check_hwgroup
 
-Checks the hwgroup environmental devices.
+Checks the hwgroup environmental devices. Supported devices are:
 
-**Supported devices**
-
-* Poseidon  http://www.hw-group.com/products/poseidon/poseidon_xxxx_en.html
-* Damocles  http://www.hw-group.com/products/damocles/damocles_xxxx_en.html
-* HWg-STE   http://www.hw-group.com/products/HWg-STE/STE_ip_temperature_sensor_en.html
+* [Poseidon](https://www.hw-group.com/devices/poseidon)
+* [Damocles](https://www.hw-group.com/devices/monitoring)
+* [HWg-STE](https://www.hw-group.com/device/hwg-ste)
 
 # Installation
 
@@ -17,13 +15,9 @@ The plugin requires at least Python 3.
 * pysnmplib
 * nagiosplugin
 
-Move the check_hwgroup.py script to your favorite ICINGA resource directory, e.g.
-
-```bash
-# cp check_hwgroup.py /usr/local/icinga/libexec
-```
-
 # Usage
+
+The options `-S`, `-I` and `-O` are mutually exclusive.
 
 ```bash
 check_hwgroup.py -h|--help
@@ -46,8 +40,6 @@ short | long        | type    | default    | description
 -I    | --contact   | integer | (none)     | the dry contact to check
 -O    | --output    | integer | (none)     | the relay output to check
 ```
-
-Exactly one of -S, -I, -O must be given.
 
 # Examples
 

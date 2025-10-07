@@ -1,13 +1,18 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+      - release/*
+  pull_request:
+    branches:
+      - main
+      - release/*
 
 jobs:
   gitHubActionForPytest:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.9]
     name: GitHub Action
     steps:
     - name: Checkout

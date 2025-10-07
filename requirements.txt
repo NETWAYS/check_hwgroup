@@ -1,2 +1,3 @@
-pysnmplib==5.0.21
+pysnmplib==5.0.24
 nagiosplugin==1.3.3
+pyasyncore==1.0.4

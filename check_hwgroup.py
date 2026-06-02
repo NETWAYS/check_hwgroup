@@ -3,9 +3,6 @@
 # check_hwgroup.py - checks the hwgroup environmental devices
 # Copyright (C) 2014  NETWAYS GmbH <http://www.netways.de>
 #
-# Version: 1.0
-# Author: Alexander Klimov <alexander.klimov@netways.de>
-#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or

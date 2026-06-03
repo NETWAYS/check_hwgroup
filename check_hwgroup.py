@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 # check_hwgroup.py - checks the hwgroup environmental devices
 # Copyright (C) 2014  NETWAYS GmbH <http://www.netways.de>
@@ -17,11 +17,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import asyncio
 import sys
 from argparse import ArgumentParser
 
+# pylint import-untyped
 import nagiosplugin
-from pysnmp.entity.rfc3413.oneliner import cmdgen
+# pylint: disable=import-error,no-name-in-module,import-untyped
+import pysnmp
+# pylint: disable=import-error,no-name-in-module
+from pysnmp.hlapi.v3arch.asyncio import SnmpEngine as pySnmp_engine
+from pysnmp.hlapi.v3arch.asyncio import next_cmd as pySnmp_next_cmd
 
 __version__ = "1.2.0"
 
@@ -44,6 +50,32 @@ sensor_paths = {
 }
 
 device_types = {"Damocles": 4, "Poseidon": 3}
+
+
+def SNMPRequest_sync(host: str, port: int, community: str, oid: str):
+    """
+    snmp_query executes the actual query
+    """
+
+    snmp_engine = pySnmp_engine()
+
+    snmp_object = pysnmp.smi.rfc1902.ObjectType(
+        pysnmp.smi.rfc1902.ObjectIdentity(oid)
+    )
+    # pylint: disable=c-extension-no-member
+    error_indication, error_status, _, result = asyncio.run(
+        pySnmp_next_cmd(
+            snmp_engine,
+            pysnmp.hlapi.v3arch.asyncio.auth.CommunityData(community),
+            asyncio.run(
+                pysnmp.hlapi.v3arch.asyncio.UdpTransportTarget.create((host, port))
+            ),
+            pysnmp.hlapi.v3arch.asyncio.ContextData(),
+            snmp_object,
+        )
+    )
+
+    return error_indication, error_status, result
 
 
 class CheckHWGroupError(Exception):
@@ -94,20 +126,17 @@ class CheckHWGroupResource(nagiosplugin.Resource):
         else:
             raise self.notSupported
 
-    def SNMPReq(self, MIBInit):
+    def SNMPReq(self, oid):
         """Send a SNMP request and return the response
 
-        :param MIBInit: MIB (initializer)
-        :type MIBInit: str
+        :param oid: MIB (initializer)
+        :type oid: str
         :rtype: str
         :raise CheckHWGroupError: if a SNMP error occurs
         """
-        errorIndication, errorStatus, _, varBinds = cmdgen.CommandGenerator().getCmd(
-            cmdgen.CommunityData(self.community, mpModel=0),
-            cmdgen.UdpTransportTarget((self.host, self.port)),
-            cmdgen.MibVariable(MIBInit),
-            lookupNames=True,
-            lookupValues=True,
+
+        errorIndication, errorStatus, varBinds = SNMPRequest_sync(
+            self.host, self.port, self.community, oid
         )
 
         if errorIndication:
@@ -289,6 +318,6 @@ if __name__ == "__main__":  # pragma: no cover
         raise sys.exc_info()[1].with_traceback(
             sys.exc_info()[2]
         )  # pylint: disable=raise-missing-from
-    except:  # pylint: disable=bare-except
+    except:  # pylint: disable=bare-except  # noqa: E722
         print("[UNKNOWN] - Error: %s" % (str(sys.exc_info()[1])))
         sys.exit(3)

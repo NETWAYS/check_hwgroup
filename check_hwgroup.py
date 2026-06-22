@@ -21,11 +21,8 @@ import asyncio
 import sys
 from argparse import ArgumentParser
 
-# pylint import-untyped
 import nagiosplugin
-# pylint: disable=import-error,no-name-in-module,import-untyped
 import pysnmp
-# pylint: disable=import-error,no-name-in-module
 from pysnmp.hlapi.v3arch.asyncio import SnmpEngine as pySnmp_engine
 from pysnmp.hlapi.v3arch.asyncio import next_cmd as pySnmp_next_cmd
 
@@ -91,6 +88,7 @@ class CheckHWGroupResource(nagiosplugin.Resource):
     The resource for fetching sensor/contact/output values
     """
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, host, community, port, sensor, contact, output):
         """
         Prepare the resource
@@ -315,9 +313,10 @@ if __name__ == "__main__":  # pragma: no cover
         sys.exit(main(ARGS))
     except SystemExit:
         # Re-throw the exception
+        # pylint: disable=raise-missing-from
         raise sys.exc_info()[1].with_traceback(
             sys.exc_info()[2]
-        )  # pylint: disable=raise-missing-from
+        )
     except:  # pylint: disable=bare-except  # noqa: E722
         print("[UNKNOWN] - Error: %s" % (str(sys.exc_info()[1])))
         sys.exit(3)

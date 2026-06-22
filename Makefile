@@ -1,10 +1,10 @@
 .PHONY: lint test
 
 lint:
-	python -m pylint check_hwgroup
+	python3 -m pylint check_hwgroup
 
 test:
-	python -m unittest -v test_check_hwgroup.py
+	python3 -m unittest -v test_check_hwgroup.py
 coverage:
-	python -m coverage run -m unittest -b test_check_hwgroup.py
-	python -m coverage report -m --include check_hwgroup.py
+	python3 -m coverage run -m unittest -b test_check_hwgroup.py
+	python3 -m coverage report -m --include check_hwgroup.py

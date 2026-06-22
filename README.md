@@ -12,7 +12,7 @@ The plugin requires at least Python 3.
 
 ## Required Python Libraries
 
-* pysnmplib
+* pysnmp
 * nagiosplugin
 
 # Usage

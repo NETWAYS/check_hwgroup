@@ -1,0 +1,11 @@
+.idea
+\#*
+.\#*
+TODO*
+
+check_hwgroup
+dist/
+
+vendor/
+coverage.html
+coverage.out

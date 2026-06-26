@@ -20,7 +20,7 @@ var (
 type CLI struct {
 	Host        string        `kong:"required,env='CHECK_HWGROUP_HOST',help='Hostname or IP of the device'"`
 	Community   string        `kong:"required,default='public',env='CHECK_HWGROUP_COMMUNITY',help='SNMP community string'"`
-	Port        uint16        `kong:"required,env='CHECK_HWGROUP_PORT',help='Port of the device'"`
+	Port        uint16        `kong:"required,default=161,env='CHECK_HWGROUP_PORT',help='Port of the device'"`
 	SNMPVersion string        `kong:"required,default='2c',enum='1,2c,3',help='SNMP Version to use'"`
 	Warning     string        `kong:"required,help='Warning threshold for return value'"`
 	Critical    string        `kong:"required,help='Critical threshold for return value'"`
@@ -81,41 +81,45 @@ func main() {
 	// The result from the SNMP query
 	var result hwgroup.SensorResult
 
-	// We use this in the output
-	var checkType string
+	// Final output string
+	var output string
 
 	var errQuery error
 
 	// Check the sensor if flag was set
 	if cli.Sensor != nil {
-		checkType = "Sensor"
-
 		result, errQuery = client.QuerySensor(deviceType, *cli.Sensor)
 
 		if errQuery != nil {
 			check.ExitError(errQuery)
 		}
+
+		output = fmt.Sprintf("Sensor value: %.1f", result.Value)
 	}
 
 	// Check the output if flag was set
 	if cli.Output != nil {
-		checkType = "Output"
-
 		result, errQuery = client.QueryOutput(deviceType, *cli.Output)
 
 		if errQuery != nil {
 			check.ExitError(errQuery)
 		}
+
+		if result.ContactOutputFields.Name != "" {
+			output = result.ContactOutputFields.OutputString()
+		}
 	}
 
 	// Check the contact if flag was set
 	if cli.Contact != nil {
-		checkType = "Contact"
-
 		result, errQuery = client.QueryContact(deviceType, *cli.Contact)
 
 		if errQuery != nil {
 			check.ExitError(errQuery)
+		}
+
+		if result.ContactOutputFields.Name != "" {
+			output = result.ContactOutputFields.ContactString()
 		}
 	}
 
@@ -135,14 +139,6 @@ func main() {
 		state = check.Critical
 	} else if warn.DoesViolate(result.Value) {
 		state = check.Warning
-	}
-
-	var output string
-
-	if result.ContactOutputFields.Name != "" {
-		output = result.ContactOutputFields.String()
-	} else {
-		output = fmt.Sprintf("%s value: %.1f", checkType, result.Value)
 	}
 
 	check.ExitWithPerfdata(state, perfdata, deviceName, "-", output)

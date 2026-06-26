@@ -63,32 +63,89 @@ type ContactOutputFields struct {
 	AlarmState int     // col 5: alarm state index (contact) / mode index (output)
 }
 
-func (cf *ContactOutputFields) String() string {
+// ContactString returns a string representation of the state
+// if the fields are for a dry contact
+func (cf *ContactOutputFields) ContactString() string {
 	var state string
 
+	// From vendor docs:
+	// Current sensor state 0 = normal, 1 = Alarm activated but not send
 	switch cf.AlarmState {
 	case 0:
 		state = "normal"
 	case 1:
-		state = "alarm"
+		state = "activated"
 	default:
 		state = unknownState
 	}
 
 	var setup string
 
-	switch cf.AlarmState {
+	// From vendor docs:
+	// alarm settings for this Binary input – 1 byte
+	// 0 = active if on, 1 = active if off, 2 = inactive
+	switch cf.AlarmSetup {
 	case 0:
-		setup = "inactive"
+		setup = "active if on"
 	case 1:
-		setup = "activeOff"
+		setup = "active if off"
 	case 2:
-		setup = "activeOn"
+		setup = "inactive"
 	default:
 		setup = unknownState
 	}
 
-	return fmt.Sprintf("Name: %s, AlarmState: %s, AlarmSetup: %s", cf.Name, state, setup)
+	return fmt.Sprintf("Contact name: %s, AlarmState: %s, AlarmSetup: %s", cf.Name, state, setup)
+}
+
+// OutputString returns a string representation of the state
+// if the fields are for a relay output
+func (cf *ContactOutputFields) OutputString() string {
+	var state string
+
+	// From vendor docs:
+	// 0: X/Y = On / Off (Relay output)
+	// 1: X/Y = "On (+10V)" / "Off (-10V)" (RTS output)
+	// 2: X/Y = "On (+10V)" / "Off (0V)" (DTR output)
+	switch cf.AlarmState {
+	case 0:
+		state = "On / Off (Relay output)"
+	case 1:
+		state = "On (+10V) / Off (-10V) (RTS output)"
+	case 2:
+		state = "On (+10V) / Off (0V) (DTR output)"
+	default:
+		state = unknownState
+	}
+
+	var setup string
+
+	// From vendor docs:
+	// Output control mode (Manual / Local + condition)
+	// 0 = Manual output control (value defined by Value tag)
+	// 1 = Local output control (On if any alarm)
+	// 2 = Local output control (On if value equal to Trigger)
+	// 3 = Local output control (On if value higher than Trigger)
+	// 4 = Local output control (On if value lower than Trigger)
+	// 5 = Local output control (On if Alarm on)
+	switch cf.AlarmSetup {
+	case 0:
+		setup = "Manual output control"
+	case 1:
+		setup = "On if any alarm"
+	case 2:
+		setup = "On if value equal to Trigger"
+	case 3:
+		setup = "On if value higher than Trigger"
+	case 4:
+		setup = "On if value lower than Trigger"
+	case 5:
+		setup = "On if Alarm on"
+	default:
+		setup = unknownState
+	}
+
+	return fmt.Sprintf("Output name: %s, Type: %s, Mode: %s", cf.Name, state, setup)
 }
 
 // Client is a small wrapper for gosnmp.GoSNMP so that we can
@@ -98,7 +155,7 @@ type Client struct {
 }
 
 func NewClient(hostname string, port uint16, community string, snmpVersion gosnmp.SnmpVersion, timeout time.Duration) *Client {
-	// TODO snmpv3 params
+	// TODO Support SNMPv3
 	snmpClient := &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      port,
@@ -232,7 +289,9 @@ func (c *Client) QueryContact(deviceType string, contactID uint) (SensorResult, 
 
 	result.Name = fields.Name
 	result.ContactOutputFields = fields
-	result.Value = float64(fields.Value)
+	// From vendor docs:
+	// Current value 0/1 (Read only)
+	result.Value = fields.Value
 
 	return result, nil
 }
@@ -262,6 +321,10 @@ func (c *Client) QueryOutput(deviceType string, outputID uint) (SensorResult, er
 
 	result.Name = fields.Name
 	result.ContactOutputFields = fields
+	// From vendor docs:
+	// 0/1 Current output value
+	// 0 = Y ("Off" / "Off (-10V)" / "Off (0V)")
+	// 1 = X ("On" / "On (+10V)" / "On (+10V)")
 	result.Value = fields.Value
 
 	return result, nil

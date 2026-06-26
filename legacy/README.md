@@ -1,3 +1,5 @@
+**Note:** This is an older version and will no longer be maintained.
+
 # check_hwgroup
 
 Checks the hwgroup environmental devices. Supported devices are:

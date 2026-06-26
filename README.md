@@ -23,3 +23,61 @@ Flags:
 --contact=CONTACT       check the given dry contact ID
 --version               Print version information and quit
 ```
+
+The warning and critical flags support thresholds in the common Nagios format (e.g. `~:10`).
+
+## Examples
+
+### Sensors
+
+```shell
+check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 10 --critical 20 --sensor 29448
+
+[CRITICAL] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Sensor value: 25.3|'HTemp Rack 19'=25.3;10;20
+```
+
+### Dry Contacts
+
+```shell
+check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 1 --critical 1 --contact 1
+
+[OK] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Contact name: Binary 1, AlarmState: normal, AlarmSetup: active if on|'Binary 1'=0;1;1
+```
+
+How the plugin maps the returned contact states:
+
+- `0`: normal
+- `1`: activated
+- `everything else`: unknown
+
+How the plugin maps the returned contact setup:
+
+- `0`: active if on
+- `1`: active if off
+- `2`: inactive
+- `everything else`: unknown
+
+### Relay Outputs
+
+```shell
+check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 1 --critical 1 --output 1
+
+[OK] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Output name: VirtBinOut 1, Type: On / Off (Relay output), Mode: Manual output control|'VirtBinOut 1'=0;1;1
+```
+
+How the plugin maps the returned output states:
+
+- `0`: On / Off (Relay output)
+- `1`: On (+10V) / Off (-10V) (RTS output)
+- `2`: On (+10V) / Off (0V) (DTR output)
+- `everything else`: unknown
+
+How the plugin maps the returned output setup:
+
+- `0`: Manual output control
+- `1`: On if any alarm
+- `2`: On if value equal to Trigger
+- `3`: On if value higher than Trigger
+- `4`: On if value lower than Trigger
+- `5`: On if Alarm on
+- `everything else`: unknown

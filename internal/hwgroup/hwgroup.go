@@ -154,22 +154,106 @@ type Client struct {
 	SNMPClient *gosnmp.GoSNMP
 }
 
-func NewClient(hostname string, port uint16, community string, snmpVersion gosnmp.SnmpVersion, timeout time.Duration) *Client {
-	// TODO Support SNMPv3
-	snmpClient := &gosnmp.GoSNMP{
+type SNMPConfig struct {
+	Version gosnmp.SnmpVersion
+	// v1,v2c Community string
+	Community string
+	// v3
+	Username     string
+	AuthPassword string
+	AuthProto    string
+	PrivPassword string
+	PrivProto    string
+}
+
+func NewSNMPv1Client(hostname string, port uint16, timeout time.Duration, config SNMPConfig) (*Client, error) {
+	c := &Client{SNMPClient: &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      port,
-		Community: community,
-		Version:   snmpVersion,
 		Timeout:   timeout,
 		Retries:   3,
+		Version:   gosnmp.Version1,
+		Community: config.Community,
+	}}
+
+	return c, nil
+}
+
+func NewSNMPv2Client(hostname string, port uint16, timeout time.Duration, config SNMPConfig) (*Client, error) {
+	c := &Client{SNMPClient: &gosnmp.GoSNMP{
+		Target:    hostname,
+		Port:      port,
+		Timeout:   timeout,
+		Retries:   3,
+		Version:   gosnmp.Version2c,
+		Community: config.Community,
+	}}
+
+	return c, nil
+}
+
+func NewSNMPv3Client(hostname string, port uint16, timeout time.Duration, config SNMPConfig) (*Client, error) {
+	c := &Client{SNMPClient: &gosnmp.GoSNMP{
+		Target:  hostname,
+		Port:    port,
+		Timeout: timeout,
+		Retries: 3,
+		Version: gosnmp.Version3,
+	}}
+
+	if config.Username == "" {
+		return c, errors.New("username is required with SNMPv3")
 	}
 
-	c := &Client{
-		SNMPClient: snmpClient,
+	if config.PrivPassword != "" && config.AuthPassword == "" {
+		return c, errors.New("auth-password is required when priv-password is set")
 	}
 
-	return c
+	c.SNMPClient.SecurityModel = gosnmp.UserSecurityModel
+
+	// Is a bit complex, but we can unittest this to ensure it's correct
+	switch {
+	case config.AuthPassword != "" && config.PrivPassword != "":
+		c.SNMPClient.MsgFlags = gosnmp.AuthPriv
+
+		authProto, err := MapAuthProto(config.AuthProto)
+		if err != nil {
+			return c, err
+		}
+
+		privProto, err := MapPrivProto(config.PrivProto)
+		if err != nil {
+			return c, err
+		}
+
+		c.SNMPClient.SecurityParameters = &gosnmp.UsmSecurityParameters{
+			UserName:                 config.Username,
+			AuthenticationProtocol:   authProto,
+			AuthenticationPassphrase: config.AuthPassword,
+			PrivacyProtocol:          privProto,
+			PrivacyPassphrase:        config.PrivPassword,
+		}
+	case config.AuthPassword != "":
+		c.SNMPClient.MsgFlags = gosnmp.AuthNoPriv
+
+		authProto, err := MapAuthProto(config.AuthProto)
+		if err != nil {
+			return c, err
+		}
+
+		c.SNMPClient.SecurityParameters = &gosnmp.UsmSecurityParameters{
+			UserName:                 config.Username,
+			AuthenticationProtocol:   authProto,
+			AuthenticationPassphrase: config.AuthPassword,
+		}
+	default:
+		c.SNMPClient.MsgFlags = gosnmp.NoAuthNoPriv
+		c.SNMPClient.SecurityParameters = &gosnmp.UsmSecurityParameters{
+			UserName: config.Username,
+		}
+	}
+
+	return c, nil
 }
 
 func (c *Client) Close() {
@@ -398,7 +482,7 @@ func (c *Client) getString(oid string) (string, error) {
 	return s, nil
 }
 
-// getString uses SNMP GET and returns an int
+// getInt uses SNMP GET and returns an int
 func (c *Client) getInt(oid string) (int, error) {
 	s, errGet := c.getString(oid)
 
@@ -415,7 +499,7 @@ func (c *Client) getInt(oid string) (int, error) {
 	return i, nil
 }
 
-// getString uses SNMP GET and returns a float64
+// getFloat64 uses SNMP GET and returns a float64
 func (c *Client) getFloat64(oid string) (float64, error) {
 	s, errGet := c.getString(oid)
 
@@ -444,6 +528,48 @@ func MapSNMPVersion(version string) (gosnmp.SnmpVersion, error) {
 	default:
 		return gosnmp.Version1, errors.New("invalid SNMP version string")
 	}
+}
+
+// MapAuthProto returns the gosnmp.SnmpV3AuthProtocol given the string
+func MapAuthProto(s string) (gosnmp.SnmpV3AuthProtocol, error) {
+	if s == "" {
+		return gosnmp.NoAuth, errors.New("empty auth protocol")
+	}
+
+	m := map[string]gosnmp.SnmpV3AuthProtocol{
+		"MD5":    gosnmp.MD5,
+		"SHA":    gosnmp.SHA,
+		"SHA224": gosnmp.SHA224,
+		"SHA256": gosnmp.SHA256,
+		"SHA384": gosnmp.SHA384,
+		"SHA512": gosnmp.SHA512,
+	}
+
+	if p, ok := m[s]; ok {
+		return p, nil
+	}
+
+	return gosnmp.NoAuth, fmt.Errorf("unknown auth protocol: %s", s)
+}
+
+// MapPrivProto returns the gosnmp.SnmpV3PrivProtocol given the string
+func MapPrivProto(s string) (gosnmp.SnmpV3PrivProtocol, error) {
+	if s == "" {
+		return gosnmp.NoPriv, errors.New("empty priv protocol")
+	}
+
+	m := map[string]gosnmp.SnmpV3PrivProtocol{
+		"DES":    gosnmp.DES,
+		"AES":    gosnmp.AES,
+		"AES192": gosnmp.AES192,
+		"AES256": gosnmp.AES256,
+	}
+
+	if p, ok := m[s]; ok {
+		return p, nil
+	}
+
+	return gosnmp.NoPriv, fmt.Errorf("unknown priv protocol: %s", s)
 }
 
 // IsSupportedDevice checks if the device is supported and returns the

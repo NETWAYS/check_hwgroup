@@ -1,7 +1,9 @@
 package hwgroup
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/gosnmp/gosnmp"
 )
@@ -79,5 +81,65 @@ func TestContactOutputFields_OutputString(t *testing.T) {
 
 	if actual := cf.OutputString(); actual != expected {
 		t.Errorf("actual: %v, expected: %v", actual, expected)
+	}
+}
+
+func TestNewSNMPv1Client(t *testing.T) {
+	config := SNMPConfig{Community: "u"}
+
+	actual, err := NewSNMPv1Client("127.0.0.1", 161, time.Second, config)
+
+	if err != nil {
+		t.Errorf("got error, expected nil: %v", err)
+	}
+
+	if actual.SNMPClient.Version != gosnmp.Version1 {
+		t.Errorf("expected SNMP v1, got %v", actual.SNMPClient.Version)
+	}
+}
+
+func TestNewSNMPv2Client(t *testing.T) {
+	config := SNMPConfig{Community: "u"}
+
+	actual, err := NewSNMPv2Client("127.0.0.1", 161, time.Second, config)
+
+	if err != nil {
+		t.Errorf("got error, expected nil: %v", err)
+	}
+
+	if actual.SNMPClient.Version != gosnmp.Version2c {
+		t.Errorf("expected SNMP v2c, got %v", actual.SNMPClient.Version)
+	}
+}
+
+func TestNewSNMPv3Client(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       SNMPConfig
+		expectAnErr bool
+		expectedErr string
+	}{
+		{"v3 noauth", SNMPConfig{Version: gosnmp.Version3, Username: "u"}, false, ""},
+		{"v3 auth", SNMPConfig{Version: gosnmp.Version3, Username: "u", AuthPassword: "p", AuthProto: "SHA"}, false, ""},
+		{"v3 authpriv", SNMPConfig{Version: gosnmp.Version3, Username: "u", AuthPassword: "p", PrivPassword: "p", AuthProto: "MD5", PrivProto: "DES"}, false, ""},
+		{"v3 no username", SNMPConfig{Version: gosnmp.Version3}, true, "username is required"},
+		{"v3 priv no auth", SNMPConfig{Version: gosnmp.Version3, Username: "u", PrivPassword: "p"}, true, "auth-password is required"},
+		{"v3 bad auth proto", SNMPConfig{Version: gosnmp.Version3, Username: "u", AuthPassword: "p", AuthProto: "INVALID"}, true, "unknown auth protocol: INVALID"},
+		{"v3 bad priv proto", SNMPConfig{Version: gosnmp.Version3, Username: "u", AuthPassword: "p", AuthProto: "MD5", PrivPassword: "p", PrivProto: "INVALID"}, true, "unknown priv protocol: INVALID"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewSNMPv3Client("127.0.0.1", 161, time.Second, tt.input)
+
+			if (err != nil) != tt.expectAnErr {
+				t.Errorf("actual: %v, expected: %v", err, tt.expectedErr)
+				return
+			}
+
+			if tt.expectAnErr && !strings.Contains(err.Error(), tt.expectedErr) {
+				t.Errorf("actual: %v, expected: %v", err, tt.expectedErr)
+			}
+		})
 	}
 }

@@ -34,7 +34,8 @@ type CLI struct {
 	SNMPVersion string        `kong:"required,default='3',enum='1,2c,3',help='SNMP Version to use'"`
 	Warning     string        `kong:"required,help='Warning threshold for return value'"`
 	Critical    string        `kong:"required,help='Critical threshold for return value'"`
-	Timeout     time.Duration `kong:"default='30s',help='Timeout for the connection'"`
+	Timeout     time.Duration `kong:"default='15s',help='Timeout for the connection'"`
+	Retries     int           `kong:"default=2,help='Retries for the connection'"`
 	V3          V3Flags       `kong:"embed='',prefix='v3-',group='SNMPv3'"`
 
 	Sensor  *uint `kong:"required,xor=checkType,help='Check the given sensor ID'"`
@@ -90,17 +91,17 @@ func main() {
 
 	switch cli.SNMPVersion {
 	case "1":
-		client, errClient = hwgroup.NewSNMPv1Client(cli.Host, cli.Port, cli.Timeout, snmpConfig)
+		client, errClient = hwgroup.NewSNMPv1Client(cli.Host, cli.Port, cli.Timeout, cli.Retries, snmpConfig)
 		if errClient != nil {
 			check.ExitError(errClient)
 		}
 	case "2c":
-		client, errClient = hwgroup.NewSNMPv2Client(cli.Host, cli.Port, cli.Timeout, snmpConfig)
+		client, errClient = hwgroup.NewSNMPv2Client(cli.Host, cli.Port, cli.Timeout, cli.Retries, snmpConfig)
 		if errClient != nil {
 			check.ExitError(errClient)
 		}
 	case "3":
-		client, errClient = hwgroup.NewSNMPv3Client(cli.Host, cli.Port, cli.Timeout, snmpConfig)
+		client, errClient = hwgroup.NewSNMPv3Client(cli.Host, cli.Port, cli.Timeout, cli.Retries, snmpConfig)
 		if errClient != nil {
 			check.ExitError(errClient)
 		}

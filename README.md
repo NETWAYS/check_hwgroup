@@ -17,7 +17,8 @@ Flags:
   --snmp-version="3"      SNMP Version to use
   --warning=STRING        Warning threshold for return value
   --critical=STRING       Critical threshold for return value
-  --timeout=30s           Timeout for the connection
+  --timeout=15s           Timeout for the connection
+  --retries=2             Retries for the connection
   --sensor=SENSOR         Check the given sensor ID
   --output=OUTPUT         Check the given relay output ID
   --contact=CONTACT       check the given dry contact ID

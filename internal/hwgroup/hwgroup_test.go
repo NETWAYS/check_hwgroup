@@ -87,7 +87,7 @@ func TestContactOutputFields_OutputString(t *testing.T) {
 func TestNewSNMPv1Client(t *testing.T) {
 	config := SNMPConfig{Community: "u"}
 
-	actual, err := NewSNMPv1Client("127.0.0.1", 161, time.Second, config)
+	actual, err := NewSNMPv1Client("127.0.0.1", 161, time.Second, 2, config)
 
 	if err != nil {
 		t.Errorf("got error, expected nil: %v", err)
@@ -101,7 +101,7 @@ func TestNewSNMPv1Client(t *testing.T) {
 func TestNewSNMPv2Client(t *testing.T) {
 	config := SNMPConfig{Community: "u"}
 
-	actual, err := NewSNMPv2Client("127.0.0.1", 161, time.Second, config)
+	actual, err := NewSNMPv2Client("127.0.0.1", 161, time.Second, 2, config)
 
 	if err != nil {
 		t.Errorf("got error, expected nil: %v", err)
@@ -130,7 +130,7 @@ func TestNewSNMPv3Client(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewSNMPv3Client("127.0.0.1", 161, time.Second, tt.input)
+			_, err := NewSNMPv3Client("127.0.0.1", 161, time.Second, 2, tt.input)
 
 			if (err != nil) != tt.expectAnErr {
 				t.Errorf("actual: %v, expected: %v", err, tt.expectedErr)

@@ -166,12 +166,12 @@ type SNMPConfig struct {
 	PrivProto    string
 }
 
-func NewSNMPv1Client(hostname string, port uint16, timeout time.Duration, config SNMPConfig) (*Client, error) {
+func NewSNMPv1Client(hostname string, port uint16, timeout time.Duration, retries int, config SNMPConfig) (*Client, error) {
 	c := &Client{SNMPClient: &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      port,
 		Timeout:   timeout,
-		Retries:   3,
+		Retries:   retries,
 		Version:   gosnmp.Version1,
 		Community: config.Community,
 	}}
@@ -179,12 +179,12 @@ func NewSNMPv1Client(hostname string, port uint16, timeout time.Duration, config
 	return c, nil
 }
 
-func NewSNMPv2Client(hostname string, port uint16, timeout time.Duration, config SNMPConfig) (*Client, error) {
+func NewSNMPv2Client(hostname string, port uint16, timeout time.Duration, retries int, config SNMPConfig) (*Client, error) {
 	c := &Client{SNMPClient: &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      port,
 		Timeout:   timeout,
-		Retries:   3,
+		Retries:   retries,
 		Version:   gosnmp.Version2c,
 		Community: config.Community,
 	}}
@@ -192,12 +192,12 @@ func NewSNMPv2Client(hostname string, port uint16, timeout time.Duration, config
 	return c, nil
 }
 
-func NewSNMPv3Client(hostname string, port uint16, timeout time.Duration, config SNMPConfig) (*Client, error) {
+func NewSNMPv3Client(hostname string, port uint16, timeout time.Duration, retries int, config SNMPConfig) (*Client, error) {
 	c := &Client{SNMPClient: &gosnmp.GoSNMP{
 		Target:  hostname,
 		Port:    port,
 		Timeout: timeout,
-		Retries: 3,
+		Retries: retries,
 		Version: gosnmp.Version3,
 	}}
 

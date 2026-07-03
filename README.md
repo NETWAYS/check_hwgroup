@@ -38,18 +38,32 @@ The warning and critical flags support thresholds in the common Nagios format (e
 
 ### Sensors
 
-```shell
+```bash
 check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 10 --critical 20 --sensor 29448
 
 [CRITICAL] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Sensor value: 25.3|'HTemp Rack 19'=25.3;10;20
 ```
 
+Check for a negative value:
+
+```bash
+check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3265.internal --warning="-5:" --critical="-10:" --sensor 33640
+
+[CRITICAL] - Poseidon 3265 SNMP Supervisor v3.0.4 - Sensor value: -14.5|MORAL3=-14.5;-5:;-10:
+```
+
 ### Dry Contacts
 
-```shell
+```bash
 check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 1 --critical 1 --contact 1
 
 [OK] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Contact name: Binary 1, AlarmState: normal, AlarmSetup: active if on|'Binary 1'=0;1;1
+```
+
+```bash
+check_hwgroup --community public --snmp-version 1 --port 161 --host damocles-mini.internal --warning 1 --critical 1 --contact 1
+
+[OK] - Damocles MINI SNMP Supervisor v1.0.11 - Contact name: Input 1, AlarmState: normal, AlarmSetup: inactive|'Input 1'=0;1;1
 ```
 
 How the plugin maps the returned contact states:
@@ -67,7 +81,7 @@ How the plugin maps the returned contact setup:
 
 ### Relay Outputs
 
-```shell
+```bash
 check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 1 --critical 1 --output 1
 
 [OK] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Output name: VirtBinOut 1, Type: On / Off (Relay output), Mode: Manual output control|'VirtBinOut 1'=0;1;1

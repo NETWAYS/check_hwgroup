@@ -1,10 +1,13 @@
-.PHONY: lint test
+.PHONY: test coverage lint vet
 
+build:
+	CGO_ENABLED=0 go build
 lint:
-	python -m pylint check_hwgroup
-
+	go fmt $(go list ./... | grep -v /vendor/)
+vet:
+	go vet $(go list ./... | grep -v /vendor/)
 test:
-	python -m unittest -v test_check_hwgroup.py
+	go test -v -cover ./...
 coverage:
-	python -m coverage run -m unittest -b test_check_hwgroup.py
-	python -m coverage report -m --include check_hwgroup.py
+	go test -v -cover -coverprofile=coverage.out ./... &&\
+	go tool cover -html=coverage.out -o coverage.html

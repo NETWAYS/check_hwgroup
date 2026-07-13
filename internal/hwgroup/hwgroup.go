@@ -284,12 +284,6 @@ func (c *Client) QueryDeviceName() (string, error) {
 func (c *Client) QuerySensor(deviceType string, sensorID uint) (SensorResult, error) {
 	var result SensorResult
 
-	_, ok := deviceTypeNums[deviceType]
-
-	if !ok {
-		return result, fmt.Errorf("sensor checks are not supported for %s", deviceType)
-	}
-
 	errConnect := c.SNMPClient.Connect()
 	if errConnect != nil {
 		return result, fmt.Errorf("could not connect to device: %w", errConnect)

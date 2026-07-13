@@ -42,6 +42,13 @@ The warning and critical flags support thresholds in the common Nagios format (e
 check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 10 --critical 20 --sensor 29448
 
 [CRITICAL] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Sensor value: 25.3|'HTemp Rack 19'=25.3;10;20
+
+```
+
+```bash
+check_hwgroup --community public --snmp-version 1 --port 161 --host ste2.internal --warning 10 --critical 20 --sensor 52290
+
+[WARNING] - STE2 r2, fw:1.5.9_2478 - Sensor value: 19.3|'Temp Rack'=19.3;10;20
 ```
 
 Check for a negative value:

@@ -57,10 +57,10 @@ type SensorResult struct {
 // ContactOutputFields is added to the SensorResult when Contact or Output is requested,
 // so that we can add the extra information
 type ContactOutputFields struct {
-	Value      float64 // col 2: current state (0/1)
-	Name       string  // col 3: user-defined label
-	AlarmSetup int     // col 4: alarm config index (contact) / type index (output)
-	AlarmState int     // col 5: alarm state index (contact) / mode index (output)
+	Value       float64 // col 2: current state (0/1)
+	Name        string  // col 3: user-defined label
+	AlarmSetup  int     // col 4: alarm config index (contact) / type index (output)
+	SensorState int     // col 5: sensor state index (contact) / mode index (output)
 }
 
 // ContactString returns a string representation of the state
@@ -70,11 +70,11 @@ func (cf *ContactOutputFields) ContactString() string {
 
 	// From vendor docs:
 	// Current sensor state 0 = normal, 1 = Alarm activated but not send
-	switch cf.AlarmState {
+	switch cf.SensorState {
 	case 0:
-		state = "normal"
+		state = "0"
 	case 1:
-		state = "activated"
+		state = "1"
 	default:
 		state = unknownState
 	}
@@ -95,7 +95,7 @@ func (cf *ContactOutputFields) ContactString() string {
 		setup = unknownState
 	}
 
-	return fmt.Sprintf("Contact name: %s, AlarmState: %s, AlarmSetup: %s", cf.Name, state, setup)
+	return fmt.Sprintf("Contact name: %s, SensorState: %s, AlarmSetup: %s", cf.Name, state, setup)
 }
 
 // OutputString returns a string representation of the state
@@ -107,7 +107,7 @@ func (cf *ContactOutputFields) OutputString() string {
 	// 0: X/Y = On / Off (Relay output)
 	// 1: X/Y = "On (+10V)" / "Off (-10V)" (RTS output)
 	// 2: X/Y = "On (+10V)" / "Off (0V)" (DTR output)
-	switch cf.AlarmState {
+	switch cf.SensorState {
 	case 0:
 		state = "On / Off (Relay output)"
 	case 1:
@@ -446,7 +446,7 @@ func (c *Client) getContactOutputFields(table string, devNum int, id uint) (Cont
 	fields.Value = currentState
 	fields.Name = userLabel
 	fields.AlarmSetup = alarmConfig
-	fields.AlarmState = alarmState
+	fields.SensorState = alarmState
 
 	return fields, nil
 }

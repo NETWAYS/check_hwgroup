@@ -64,19 +64,19 @@ check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-
 ```bash
 check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 1 --critical 1 --contact 1
 
-[OK] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Contact name: Binary 1, AlarmState: normal, AlarmSetup: active if on|'Binary 1'=0;1;1
+[OK] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Contact name: Binary 1, SensorState: 0, AlarmSetup: active if on|'Binary 1'=0;1;1
 ```
 
 ```bash
 check_hwgroup --community public --snmp-version 1 --port 161 --host damocles-mini.internal --warning 1 --critical 1 --contact 1
 
-[OK] - Damocles MINI SNMP Supervisor v1.0.11 - Contact name: Input 1, AlarmState: normal, AlarmSetup: inactive|'Input 1'=0;1;1
+[OK] - Damocles MINI SNMP Supervisor v1.0.11 - Contact name: Input 1, SensorState: 0, AlarmSetup: inactive|'Input 1'=0;1;1
 ```
 
 How the plugin maps the returned contact states:
 
-- `0`: normal
-- `1`: activated
+- `0`: 0
+- `1`: 1
 - `everything else`: unknown
 
 How the plugin maps the returned contact setup:

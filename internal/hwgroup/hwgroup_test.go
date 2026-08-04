@@ -65,9 +65,9 @@ func TestIsSupportedDevice(t *testing.T) {
 }
 
 func TestContactOutputFields_ContactString(t *testing.T) {
-	cf := ContactOutputFields{Name: "Unit", AlarmState: 0, AlarmSetup: 0}
+	cf := ContactOutputFields{Name: "Unit", SensorState: 0, AlarmSetup: 0}
 
-	expected := "Contact name: Unit, AlarmState: normal, AlarmSetup: active if on"
+	expected := "Contact name: Unit, SensorState: 0, AlarmSetup: active if on"
 
 	if actual := cf.ContactString(); actual != expected {
 		t.Errorf("actual: %v, expected: %v", actual, expected)
@@ -75,7 +75,7 @@ func TestContactOutputFields_ContactString(t *testing.T) {
 }
 
 func TestContactOutputFields_OutputString(t *testing.T) {
-	cf := ContactOutputFields{Name: "Unit", AlarmState: 2, AlarmSetup: 3}
+	cf := ContactOutputFields{Name: "Unit", SensorState: 2, AlarmSetup: 3}
 
 	expected := "Output name: Unit, Type: On (+10V) / Off (0V) (DTR output), Mode: On if value higher than Trigger"
 

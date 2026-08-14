@@ -17,11 +17,12 @@ const (
 	damoclesType   = "Damocles"
 	steType        = "STE1"
 	ste2Type       = "STE2"
+	hwgSteType     = "HWg-STE"
 	wldType        = "WLD"
 	unknownState   = "unknown"
 )
 
-var supportedDeviceTypes = []string{poseidonType, damoclesType, steType, ste2Type, wldType}
+var supportedDeviceTypes = []string{poseidonType, damoclesType, steType, ste2Type, hwgSteType, wldType}
 
 // OID prefixes for sensors per device type.
 var sensorIDPrefix = map[string]string{
@@ -29,6 +30,7 @@ var sensorIDPrefix = map[string]string{
 	damoclesType: "3.4.3.1.8",
 	ste2Type:     "4.9.3.1.8",
 	steType:      "4.1.3.1.8",
+	hwgSteType:   "4.1.3.1.8",
 	wldType:      "4.5.4.1.5",
 }
 
@@ -38,6 +40,7 @@ var sensorPathSuffix = map[string][3]string{
 	damoclesType: {"3.4.3.1.2", "3.4.3.1.4", "3.4.3.1.6"},
 	ste2Type:     {"4.9.3.1.2", "4.9.3.1.3", "4.9.3.1.5"},
 	steType:      {"4.1.3.1.2", "4.1.3.1.3", "4.1.3.1.5"},
+	hwgSteType:   {"4.1.3.1.2", "4.1.3.1.3", "4.1.3.1.5"},
 	wldType:      {"4.5.4.1.2", "4.5.4.1.3", "4.5.4.1.6"},
 }
 

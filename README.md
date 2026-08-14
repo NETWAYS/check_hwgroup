@@ -1,3 +1,5 @@
+**Note:** This is an older version and will no longer be maintained.
+
 # check_hwgroup
 
 Checks the hwgroup environmental devices. Supported devices are:
@@ -6,23 +8,38 @@ Checks the hwgroup environmental devices. Supported devices are:
 * [Damocles](https://www.hw-group.com/devices/monitoring)
 * [HWg-STE](https://www.hw-group.com/device/hwg-ste)
 
-## Usage
+# Installation
 
-```
+The plugin requires at least Python 3.
+
+## Required Python Libraries
+
+* pysnmplib
+* nagiosplugin
+
+# Usage
+
+The options `-S`, `-I` and `-O` are mutually exclusive.
+
+```bash
+Usage: check_hwgroup --host=STRING --community="public" --port=161 --snmp-version="3" --warning=STRING --critical=STRING --sensor=SENSOR --output=OUTPUT --contact=CONTACT [flags]
+
+Monitoring check plugin for the HW group environmental devices
+
 Flags:
-  --help                  Show context-sensitive help.
-  --host=STRING           Hostname or IP of the device ($CHECK_HWGROUP_HOST)
-  --community="public"    SNMP community string ($CHECK_HWGROUP_COMMUNITY)
-  --port=UINT-16          Port of the device ($CHECK_HWGROUP_PORT)
-  --snmp-version="3"      SNMP Version to use
-  --warning=STRING        Warning threshold for return value
-  --critical=STRING       Critical threshold for return value
-  --timeout=15s           Timeout for the connection
-  --retries=2             Retries for the connection
-  --sensor=SENSOR         Check the given sensor ID
-  --output=OUTPUT         Check the given relay output ID
-  --contact=CONTACT       check the given dry contact ID
-  --version               Print version information and quit
+  -h, --help                  Show context-sensitive help.
+  -H, --host=STRING           Hostname or IP of the device ($CHECK_HWGROUP_HOST)
+  -C, --community="public"    SNMP community string ($CHECK_HWGROUP_COMMUNITY)
+  -p, --port=161              Port of the device ($CHECK_HWGROUP_PORT)
+  -P, --snmp-version="3"      SNMP Version to use
+  -w, --warning=STRING        Warning threshold for return value
+  -c, --critical=STRING       Critical threshold for return value
+  -t, --timeout=15s           Timeout for the connection
+  -r, --retries=2             Retries for the connection
+  -s, --sensor=SENSOR         Check the given sensor ID
+  -o, --output=OUTPUT         Check the given relay output ID
+  -d, --contact=CONTACT       Check the given dry contact ID
+  -V, --version               Print version information and quit
 
 SNMPv3
   --v3-username="public"       SNMPv3 username
@@ -32,81 +49,37 @@ SNMPv3
   --v3-priv-password=STRING    SNMPv3 privacy password ($CHECK_HWGROUP_V3_PRIV_PASS)
 ```
 
-The warning and critical flags support thresholds in the common Nagios format (e.g. `~:10`).
+# Examples
 
-## Examples
+Fetch a sensor value and check whether it's OK, WARNING or CRITICAL:
 
-### Sensors
+    $ ./check_hwgroup.py -H 192.168.144.120 -S 17946 -w 30 -c 35
+    POSEIDON 2250 SNMP SUPERVISOR V1.0.13 OK - Sensor 240 is 25.8 | 'Sensor 240'=25.8;30.0;35.0
+    $ echo $?
+    0
 
-```bash
-check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 10 --critical 20 --sensor 29448
+    $ ./check_hwgroup.py -H 192.168.144.120 -S 17946 -w 25.7 -c 35
+    POSEIDON 2250 SNMP SUPERVISOR V1.0.13 WARNING - Sensor 240 is 25.8 (outside range 0:25.7) | 'Sensor 240'=25.8;25.7;35.0
+    $ echo $?
+    1
 
-[CRITICAL] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Sensor value: 25.3|'HTemp Rack 19'=25.3;10;20
+    $ ./check_hwgroup.py -H 192.168.144.120 -S 17946 -w 25.7 -c 25.7
+    POSEIDON 2250 SNMP SUPERVISOR V1.0.13 CRITICAL - Sensor 240 is 25.8 (outside range 0:25.7) | 'Sensor 240'=25.8;25.7;25.7
+    $ echo $?
+    2
 
-```
+## Frequently occurred user errors
 
-```bash
-check_hwgroup --community public --snmp-version 1 --port 161 --host ste2.internal --warning 10 --critical 20 --sensor 52290
+Wrong host/port/community:
 
-[WARNING] - STE2 r2, fw:1.5.9_2478 - Sensor value: 19.3|'Temp Rack'=19.3;10;20
-```
+    $ ./check_hwgroup.py -H 192.168.144.121 -S 17946 -w 30 -c 35 -P 162 -C apple
+    ERROR: SNMP error: No SNMP response received before timeout
+    $ echo $?
+    3
 
-Check for a negative value:
+Wrong sensor:
 
-```bash
-check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3265.internal --warning="-5:" --critical="-10:" --sensor 33640
-
-[CRITICAL] - Poseidon 3265 SNMP Supervisor v3.0.4 - Sensor value: -14.5|MORAL3=-14.5;-5:;-10:
-```
-
-### Dry Contacts
-
-```bash
-check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 1 --critical 1 --contact 1
-
-[OK] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Contact name: Binary 1, SensorState: 0, AlarmSetup: active if on|'Binary 1'=0;1;1
-```
-
-```bash
-check_hwgroup --community public --snmp-version 1 --port 161 --host damocles-mini.internal --warning 1 --critical 1 --contact 1
-
-[OK] - Damocles MINI SNMP Supervisor v1.0.11 - Contact name: Input 1, SensorState: 0, AlarmSetup: inactive|'Input 1'=0;1;1
-```
-
-How the plugin maps the returned contact states:
-
-- `0`: 0
-- `1`: 1
-- `everything else`: unknown
-
-How the plugin maps the returned contact setup:
-
-- `0`: active if on
-- `1`: active if off
-- `2`: inactive
-- `everything else`: unknown
-
-### Relay Outputs
-
-```bash
-check_hwgroup --community public --snmp-version 2c --port 1161 --host poseidon2-3266.internal --warning 1 --critical 1 --output 1
-
-[OK] - Poseidon2 3266 SNMP Supervisor v3.8.4 - Output name: VirtBinOut 1, Type: On / Off (Relay output), Mode: Manual output control|'VirtBinOut 1'=0;1;1
-```
-
-How the plugin maps the returned output states:
-
-- `0`: On / Off (Relay output)
-- `1`: On (+10V) / Off (-10V) (RTS output)
-- `2`: On (+10V) / Off (0V) (DTR output)
-- `everything else`: unknown
-
-How the plugin maps the returned output setup:
-
-- `0`: Manual output control
-- `1`: On if any alarm
-- `2`: On if value equal to Trigger
-- `3`: On if value higher than Trigger
-- `4`: On if value lower than Trigger
-- `5`: On if Alarm on
-- `everything else`: unknown
+    $ ./check_hwgroup.py -H 192.168.144.120 -S 17947 -w 30 -c 35
+    ERROR: Sensor ID (17947) not found
+    $ echo $?
+    3

@@ -28,21 +28,21 @@ type V3Flags struct {
 }
 
 type CLI struct {
-	Host        string        `kong:"required,env='CHECK_HWGROUP_HOST',help='Hostname or IP of the device'"`
-	Community   string        `kong:"required,default='public',env='CHECK_HWGROUP_COMMUNITY',help='SNMP community string'"`
-	Port        uint16        `kong:"required,default=161,env='CHECK_HWGROUP_PORT',help='Port of the device'"`
-	SNMPVersion string        `kong:"required,default='3',enum='1,2c,3',help='SNMP Version to use'"`
-	Warning     string        `kong:"required,help='Warning threshold for return value'"`
-	Critical    string        `kong:"required,help='Critical threshold for return value'"`
-	Timeout     time.Duration `kong:"default='15s',help='Timeout for the connection'"`
-	Retries     int           `kong:"default=2,help='Retries for the connection'"`
+	Host        string        `kong:"required,short='H',env='CHECK_HWGROUP_HOST',help='Hostname or IP of the device'"`
+	Community   string        `kong:"required,short='C',default='public',env='CHECK_HWGROUP_COMMUNITY',help='SNMP community string'"`
+	Port        uint16        `kong:"required,short='p',default=161,env='CHECK_HWGROUP_PORT',help='Port of the device'"`
+	SNMPVersion string        `kong:"required,short='P',default='3',enum='1,2c,3',help='SNMP Version to use'"`
+	Warning     string        `kong:"required,short='w',help='Warning threshold for return value'"`
+	Critical    string        `kong:"required,short='c',help='Critical threshold for return value'"`
+	Timeout     time.Duration `kong:"short='t',default='15s',help='Timeout for the connection'"`
+	Retries     int           `kong:"short='r',default=2,help='Retries for the connection'"`
 	V3          V3Flags       `kong:"embed='',prefix='v3-',group='SNMPv3'"`
 
-	Sensor  *uint `kong:"required,xor=checkType,help='Check the given sensor ID'"`
-	Output  *uint `kong:"required,xor=checkType,help='Check the given relay output ID'"`
-	Contact *uint `kong:"required,xor=checkType,help='check the given dry contact ID'"`
+	Sensor  *uint `kong:"required,short='s',xor=checkType,help='Check the given sensor ID'"`
+	Output  *uint `kong:"required,short='o',xor=checkType,help='Check the given relay output ID'"`
+	Contact *uint `kong:"required,short='d',xor=checkType,help='Check the given dry contact ID'"`
 
-	Version kong.VersionFlag `kong:"help='Print version information and quit'"`
+	Version kong.VersionFlag `kong:"short='V',help='Print version information and quit'"`
 }
 
 func main() {

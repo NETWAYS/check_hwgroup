@@ -15,7 +15,6 @@ var (
 	// These get filled at build time with the proper values.
 	version = "development"
 	commit  = "HEAD"
-	date    = "latest"
 )
 
 // V3Flags are the flags for the SNMPv3
@@ -194,10 +193,6 @@ func buildVersion() string {
 
 	if commit != "" {
 		result = fmt.Sprintf("%s\ncommit: %s", result, commit)
-	}
-
-	if date != "" {
-		result = fmt.Sprintf("%s\ndate: %s", result, date)
 	}
 
 	return result

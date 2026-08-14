@@ -10,19 +10,19 @@ Checks the hwgroup environmental devices. Supported devices are:
 
 ```
 Flags:
-  --help                  Show context-sensitive help.
-  --host=STRING           Hostname or IP of the device ($CHECK_HWGROUP_HOST)
-  --community="public"    SNMP community string ($CHECK_HWGROUP_COMMUNITY)
-  --port=UINT-16          Port of the device ($CHECK_HWGROUP_PORT)
-  --snmp-version="3"      SNMP Version to use
-  --warning=STRING        Warning threshold for return value
-  --critical=STRING       Critical threshold for return value
-  --timeout=15s           Timeout for the connection
-  --retries=2             Retries for the connection
-  --sensor=SENSOR         Check the given sensor ID
-  --output=OUTPUT         Check the given relay output ID
-  --contact=CONTACT       check the given dry contact ID
-  --version               Print version information and quit
+  -h, --help                  Show context-sensitive help.
+  -H, --host=STRING           Hostname or IP of the device ($CHECK_HWGROUP_HOST)
+  -C, --community="public"    SNMP community string ($CHECK_HWGROUP_COMMUNITY)
+  -p, --port=161              Port of the device ($CHECK_HWGROUP_PORT)
+  -P, --snmp-version="3"      SNMP Version to use
+  -w, --warning=STRING        Warning threshold for return value
+  -c, --critical=STRING       Critical threshold for return value
+  -t, --timeout=15s           Timeout for the connection
+  -r, --retries=2             Retries for the connection
+  -s, --sensor=SENSOR         Check the given sensor ID
+  -o, --output=OUTPUT         Check the given relay output ID
+  -d, --contact=CONTACT       Check the given dry contact ID
+  -V, --version               Print version information and quit
 
 SNMPv3
   --v3-username="public"       SNMPv3 username
